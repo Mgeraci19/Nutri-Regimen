@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env.*
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Pycharm
+.idea/
+
+# Logs
+*.log
+
+# Tests
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# FastAPI / Uvicorn
+instance/
+*.db
+
+# Build
+dist/
+build/
