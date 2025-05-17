@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
                     </button>
                 </div>
             </div>
-            <main className="p-4">
+            <main className="">
                 {children}
             </main>
         </div>
