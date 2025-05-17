@@ -1,6 +1,8 @@
 from typing import List, Optional, Union
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
+
 
 import models, schemas, crud
 from database import engine, get_db
@@ -9,6 +11,16 @@ from database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Nutri-Regimen API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Root endpoint
 @app.get("/")

@@ -1,4 +1,5 @@
 import Layout from "./components/Layout";
+import CRUD from "./pages/CRUD";
 import Dashboard from "./pages/Dashboard";
 import Weekly from "./pages/Weekly";
 
@@ -14,6 +15,9 @@ const App = () => {
         case "/weekly":
             content = <Weekly />;
             break;
+        case "/crud":
+            content = <CRUD />;
+            break
         default:
             content = <div>404 - Page not found</div>;
     }
