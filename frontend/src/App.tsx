@@ -2,6 +2,8 @@ import Layout from "./components/Layout";
 import CRUD from "./pages/CRUD";
 import Dashboard from "./pages/Dashboard";
 import Weekly from "./pages/Weekly";
+import Ingredients from "./pages/Ingredients";
+import Recipes from "./pages/Recipes";
 
 const App = () => {
     const path = window.location.pathname;
@@ -17,7 +19,13 @@ const App = () => {
             break;
         case "/crud":
             content = <CRUD />;
-            break
+            break;
+        case "/ingredients":
+            content = <Ingredients />;
+            break;
+        case "/recipes":
+            content = <Recipes />;
+            break;
         default:
             content = <div>404 - Page not found</div>;
     }

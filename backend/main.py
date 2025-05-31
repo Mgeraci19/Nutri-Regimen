@@ -136,3 +136,40 @@ def delete_meal(meal_id: int, db: Session = Depends(get_db)):
     if db_meal is None:
         raise HTTPException(status_code=404, detail="Meal not found")
     return db_meal
+
+
+# Ingredient endpoints
+@app.post("/ingredients/", response_model=schemas.Ingredient, status_code=status.HTTP_201_CREATED)
+def create_ingredient(ingredient: schemas.IngredientCreate, db: Session = Depends(get_db)):
+    return crud.create_ingredient(db=db, ingredient=ingredient)
+
+@app.get("/ingredients/", response_model=List[schemas.Ingredient])
+def read_ingredients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    ingredients = crud.get_ingredients(db, skip=skip, limit=limit)
+    return ingredients
+
+@app.get("/ingredients/{ingredient_id}", response_model=schemas.Ingredient)
+def read_ingredient(ingredient_id: int, db: Session = Depends(get_db)):
+    db_ingredient = crud.get_ingredient(db, ingredient_id=ingredient_id)
+    if db_ingredient is None:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+    return db_ingredient
+
+# Recipe endpoints
+@app.post("/recipes/", response_model=schemas.Recipe, status_code=status.HTTP_201_CREATED)
+def create_recipe(recipe: schemas.RecipeCreate, user_id: int, db: Session = Depends(get_db)):
+    return crud.create_recipe(db=db, recipe=recipe, user_id=user_id)
+
+@app.get("/recipes/", response_model=List[schemas.Recipe])
+def read_recipes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    recipes = crud.get_recipes(db, skip=skip, limit=limit)
+    return recipes
+
+@app.get("/recipes/{recipe_id}", response_model=schemas.Recipe)
+def read_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    db_recipe = crud.get_recipe(db, recipe_id=recipe_id)
+    if db_recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return db_recipe
+
+# ...existing code...

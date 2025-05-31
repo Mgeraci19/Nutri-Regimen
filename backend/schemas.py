@@ -17,12 +17,80 @@ class UserUpdate(BaseModel):
 
 class User(UserBase):
     id: int
-    is_active: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# Food schemas
+# Ingredient schemas
+class IngredientBase(BaseModel):
+    name: str
+    calories: float
+    protein: float
+    carbs: float
+    fat: float
+
+class IngredientCreate(IngredientBase):
+    pass
+
+class IngredientUpdate(BaseModel):
+    name: Optional[str] = None
+    calories: Optional[float] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+    fat: Optional[float] = None
+
+class Ingredient(IngredientBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+# Recipe ingredient association schemas
+class RecipeIngredientBase(BaseModel):
+    ingredient_id: int
+    amount: float
+    unit: str
+
+class RecipeIngredientCreate(RecipeIngredientBase):
+    pass
+
+class RecipeIngredient(RecipeIngredientBase):
+    ingredient: Ingredient
+    
+    class Config:
+        from_attributes = True
+
+# Recipe schemas
+class RecipeBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    instructions: Optional[str] = None
+
+class RecipeCreate(RecipeBase):
+    ingredients: List[RecipeIngredientCreate]
+
+class RecipeUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    instructions: Optional[str] = None
+    ingredients: Optional[List[RecipeIngredientCreate]] = None
+
+class Recipe(RecipeBase):
+    id: int
+    user_id: int
+    ingredient_associations: List[RecipeIngredient] = []
+    
+    class Config:
+        from_attributes = True
+
+# Extended User schema with recipes
+class UserWithRecipes(User):
+    recipes: List[Recipe] = []
+
+    class Config:
+        from_attributes = True
+
+# Legacy schemas (keeping for compatibility if needed)
 class FoodBase(BaseModel):
     name: str
     calories: float
@@ -44,7 +112,7 @@ class Food(FoodBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Meal schemas
 class MealBase(BaseModel):
@@ -65,11 +133,11 @@ class Meal(MealBase):
     foods: List[Food] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Extended User schema with meals
 class UserWithMeals(User):
     meals: List[Meal] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True

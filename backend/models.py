@@ -1,32 +1,21 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-
 from database import Base
-
-# Association table for many-to-many relationship between Meal and Food
-meal_food_association = Table(
-    "meal_food",
-    Base.metadata,
-    Column("meal_id", Integer, ForeignKey("meals.id")),
-    Column("food_id", Integer, ForeignKey("foods.id")),
-)
 
 class User(Base):
     __tablename__ = "users"
-
+    
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
     
-    # Relationships
-    meals = relationship("Meal", back_populates="user")
-    
-class Food(Base):
-    __tablename__ = "foods"
+    # Relationship
+    recipes = relationship("Recipe", back_populates="creator")
 
+class Ingredient(Base):
+    __tablename__ = "ingredients"
+    
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     calories = Column(Float)
@@ -34,17 +23,30 @@ class Food(Base):
     carbs = Column(Float)
     fat = Column(Float)
     
-    # Relationships
-    meals = relationship("Meal", secondary=meal_food_association, back_populates="foods")
-    
-class Meal(Base):
-    __tablename__ = "meals"
+    # Relationship
+    recipe_associations = relationship("RecipeIngredient", back_populates="ingredient")
 
+class Recipe(Base):
+    __tablename__ = "recipes"
+    
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    date = Column(DateTime, default=func.now())
+    description = Column(Text)
+    instructions = Column(Text)
     user_id = Column(Integer, ForeignKey("users.id"))
     
     # Relationships
-    user = relationship("User", back_populates="meals")
-    foods = relationship("Food", secondary=meal_food_association, back_populates="meals")
+    creator = relationship("User", back_populates="recipes")
+    ingredient_associations = relationship("RecipeIngredient", back_populates="recipe")
+
+class RecipeIngredient(Base):
+    __tablename__ = "recipe_ingredients"
+    
+    recipe_id = Column(Integer, ForeignKey("recipes.id"), primary_key=True)
+    ingredient_id = Column(Integer, ForeignKey("ingredients.id"), primary_key=True)
+    amount = Column(Float)
+    unit = Column(String)  # e.g., "g", "tbsp", "cup"
+    
+    # Relationships
+    recipe = relationship("Recipe", back_populates="ingredient_associations")
+    ingredient = relationship("Ingredient", back_populates="recipe_associations")
