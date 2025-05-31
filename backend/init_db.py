@@ -4,8 +4,6 @@ Run this script to create the database and populate it with sample data.
 """
 
 import os
-from sqlalchemy.orm import Session
-
 # Import local modules
 from database import engine, SessionLocal, Base
 import models
