@@ -15,7 +15,7 @@ app = FastAPI(title="Nutri-Regimen API")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_origins=["http://localhost:5173", "http://localhost:5174" , "http://localhost:3000" ],  # Vite's default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

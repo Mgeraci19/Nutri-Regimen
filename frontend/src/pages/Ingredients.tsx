@@ -9,11 +9,27 @@ interface Ingredient {
   fat: number;
 }
 
+interface NewIngredient {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+  const [newIngredient, setNewIngredient] = useState<NewIngredient>({
+    name: '',
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0
+  });
 
   // Fetch all ingredients
   const fetchIngredients = async () => {
@@ -53,6 +69,53 @@ const Ingredients = () => {
     }
   };
 
+  // Create new ingredient
+  const createIngredient = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:8000/ingredients/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newIngredient),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create ingredient');
+      }
+      
+      const data = await response.json();
+      console.log('Created ingredient:', data);
+      
+      // Reset form and refresh ingredients list
+      setNewIngredient({
+        name: '',
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0
+      });
+      setShowCreateForm(false);
+      await fetchIngredients();
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (field: keyof NewIngredient, value: string | number) => {
+    setNewIngredient(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   // Load ingredients when component mounts
   useEffect(() => {
     fetchIngredients();
@@ -63,14 +126,110 @@ const Ingredients = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-2xl font-bold">Ingredients Data</h1>
-          <button 
-            className="btn btn-primary" 
-            onClick={fetchIngredients}
-            disabled={loading}
-          >
-            Refresh Data
-          </button>
+          <div className="flex gap-2">
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+            >
+              {showCreateForm ? 'Cancel' : 'Add New Ingredient'}
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={fetchIngredients}
+              disabled={loading}
+            >
+              Refresh Data
+            </button>
+          </div>
         </div>
+
+        {/* Create Ingredient Form */}
+        {showCreateForm && (
+          <div className="card bg-base-200 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title">Create New Ingredient</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Name</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ingredient name" 
+                    className="input input-bordered"
+                    value={newIngredient.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                  />
+                </div>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Calories (per 100g)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    placeholder="0" 
+                    className="input input-bordered"
+                    value={newIngredient.calories}
+                    onChange={(e) => handleInputChange('calories', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Protein (g)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="0" 
+                    className="input input-bordered"
+                    value={newIngredient.protein}
+                    onChange={(e) => handleInputChange('protein', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Carbs (g)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="0" 
+                    className="input input-bordered"
+                    value={newIngredient.carbs}
+                    onChange={(e) => handleInputChange('carbs', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                
+                <div className="form-control md:col-span-2">
+                  <label className="label">
+                    <span className="label-text">Fat (g)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="0" 
+                    className="input input-bordered"
+                    value={newIngredient.fat}
+                    onChange={(e) => handleInputChange('fat', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+              
+              <div className="card-actions justify-end mt-4">
+                <button 
+                  className="btn btn-success"
+                  onClick={createIngredient}
+                  disabled={loading || !newIngredient.name.trim()}
+                >
+                  {loading ? 'Creating...' : 'Create Ingredient'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error display */}
         {error && (

@@ -19,6 +19,9 @@ const Layout = ({ children }) => {
                                 <a href="/weekly">Weekly Plan</a>
                             </li>
                             <li>
+                                <a href="/meal-plan">Meal Planner</a>
+                            </li>
+                            <li>
                                 <a href="/ingredients">Ingredients Data</a>
                             </li>
                             <li>

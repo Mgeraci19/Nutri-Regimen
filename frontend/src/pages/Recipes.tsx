@@ -25,11 +25,32 @@ interface Recipe {
   ingredient_associations: RecipeIngredient[];
 }
 
+interface NewRecipeIngredient {
+  ingredient_id: number;
+  amount: number;
+  unit: string;
+}
+
+interface NewRecipe {
+  name: string;
+  description: string;
+  instructions: string;
+  ingredients: NewRecipeIngredient[];
+}
+
 const Recipes = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+  const [newRecipe, setNewRecipe] = useState<NewRecipe>({
+    name: '',
+    description: '',
+    instructions: '',
+    ingredients: []
+  });
 
   // Fetch all recipes
   const fetchRecipes = async () => {
@@ -47,6 +68,20 @@ const Recipes = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch all ingredients for the dropdown
+  const fetchIngredients = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/ingredients/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch ingredients');
+      }
+      const data = await response.json();
+      setIngredients(data);
+    } catch (err) {
+      console.error('Error fetching ingredients:', err);
     }
   };
 
@@ -69,9 +104,82 @@ const Recipes = () => {
     }
   };
 
-  // Load recipes when component mounts
+  // Create new recipe
+  const createRecipe = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:8000/recipes/?user_id=1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newRecipe),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create recipe');
+      }
+      
+      const data = await response.json();
+      console.log('Created recipe:', data);
+      
+      // Reset form and refresh recipes list
+      setNewRecipe({
+        name: '',
+        description: '',
+        instructions: '',
+        ingredients: []
+      });
+      setShowCreateForm(false);
+      await fetchRecipes();
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle recipe form input changes
+  const handleRecipeInputChange = (field: keyof Omit<NewRecipe, 'ingredients'>, value: string) => {
+    setNewRecipe(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Add ingredient to recipe
+  const addIngredientToRecipe = () => {
+    setNewRecipe(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, { ingredient_id: 0, amount: 0, unit: 'g' }]
+    }));
+  };
+
+  // Remove ingredient from recipe
+  const removeIngredientFromRecipe = (index: number) => {
+    setNewRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update recipe ingredient
+  const updateRecipeIngredient = (index: number, field: keyof NewRecipeIngredient, value: string | number) => {
+    setNewRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map((ingredient, i) => 
+        i === index ? { ...ingredient, [field]: value } : ingredient
+      )
+    }));
+  };
+
+  // Load recipes and ingredients when component mounts
   useEffect(() => {
     fetchRecipes();
+    fetchIngredients();
   }, []);
 
   return (
@@ -79,14 +187,156 @@ const Recipes = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-2xl font-bold">Recipes Data</h1>
-          <button 
-            className="btn btn-primary" 
-            onClick={fetchRecipes}
-            disabled={loading}
-          >
-            Refresh Data
-          </button>
+          <div className="flex gap-2">
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+            >
+              {showCreateForm ? 'Cancel' : 'Add New Recipe'}
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={fetchRecipes}
+              disabled={loading}
+            >
+              Refresh Data
+            </button>
+          </div>
         </div>
+
+        {/* Create Recipe Form */}
+        {showCreateForm && (
+          <div className="card bg-base-200 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title">Create New Recipe</h2>
+              
+              {/* Basic Recipe Info */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Recipe Name</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Enter recipe name" 
+                    className="input input-bordered"
+                    value={newRecipe.name}
+                    onChange={(e) => handleRecipeInputChange('name', e.target.value)}
+                  />
+                </div>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Description</span>
+                  </label>
+                  <textarea 
+                    placeholder="Enter recipe description" 
+                    className="textarea textarea-bordered"
+                    value={newRecipe.description}
+                    onChange={(e) => handleRecipeInputChange('description', e.target.value)}
+                  />
+                </div>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Instructions</span>
+                  </label>
+                  <textarea 
+                    placeholder="Enter cooking instructions" 
+                    className="textarea textarea-bordered"
+                    rows={4}
+                    value={newRecipe.instructions}
+                    onChange={(e) => handleRecipeInputChange('instructions', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Ingredients Section */}
+              <div className="divider">Ingredients</div>
+              
+              {newRecipe.ingredients.map((ingredient, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Ingredient</span>
+                    </label>
+                    <select 
+                      className="select select-bordered"
+                      value={ingredient.ingredient_id}
+                      onChange={(e) => updateRecipeIngredient(index, 'ingredient_id', parseInt(e.target.value))}
+                    >
+                      <option value={0}>Select ingredient</option>
+                      {ingredients.map(ing => (
+                        <option key={ing.id} value={ing.id}>{ing.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Amount</span>
+                    </label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      placeholder="0" 
+                      className="input input-bordered"
+                      value={ingredient.amount}
+                      onChange={(e) => updateRecipeIngredient(index, 'amount', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Unit</span>
+                    </label>
+                    <select 
+                      className="select select-bordered"
+                      value={ingredient.unit}
+                      onChange={(e) => updateRecipeIngredient(index, 'unit', e.target.value)}
+                    >
+                      <option value="g">grams (g)</option>
+                      <option value="kg">kilograms (kg)</option>
+                      <option value="ml">milliliters (ml)</option>
+                      <option value="l">liters (l)</option>
+                      <option value="cup">cup</option>
+                      <option value="tbsp">tablespoon</option>
+                      <option value="tsp">teaspoon</option>
+                      <option value="whole">whole</option>
+                      <option value="slices">slices</option>
+                    </select>
+                  </div>
+                  
+                  <button 
+                    className="btn btn-error btn-sm"
+                    onClick={() => removeIngredientFromRecipe(index)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              
+              <div className="flex gap-2 mt-4">
+                <button 
+                  className="btn btn-outline"
+                  onClick={addIngredientToRecipe}
+                >
+                  Add Ingredient
+                </button>
+              </div>
+              
+              <div className="card-actions justify-end mt-4">
+                <button 
+                  className="btn btn-success"
+                  onClick={createRecipe}
+                  disabled={loading || !newRecipe.name.trim() || newRecipe.ingredients.length === 0}
+                >
+                  {loading ? 'Creating...' : 'Create Recipe'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error display */}
         {error && (
