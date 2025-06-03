@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import MealPlanGrid from '../components/MealPlanGrid';
 import SaveMealPlanModal from '../components/SaveMealPlanModal';
 import LoadMealPlanModal from '../components/LoadMealPlanModal';
-import { useMealPlan } from '../hooks/useMealPlan';
+import { useMealPlan, daysOfWeek, mealTypes } from '../hooks/useMealPlan';
 import { Recipe, SavedMealPlan } from '../types';
 
 const MealPlan = () => {
@@ -14,8 +14,6 @@ const MealPlan = () => {
     loading,
     error,
     setError,
-    daysOfWeek,
-    mealTypes,
     fetchRecipes,
     saveMealPlan,
     loadMealPlan,
