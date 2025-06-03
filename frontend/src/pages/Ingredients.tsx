@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiClient';
 
 interface Ingredient {
   id: number;
@@ -37,11 +38,7 @@ const Ingredients = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/ingredients/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch ingredients');
-      }
-      const data = await response.json();
+      const data = await apiFetch<Ingredient[]>('/ingredients/');
       setIngredients(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -56,11 +53,7 @@ const Ingredients = () => {
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:8000/ingredients/${id}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ingredient with ID ${id}`);
-      }
-      const data = await response.json();
+      const data = await apiFetch<Ingredient>(`/ingredients/${id}`);
       setSelectedIngredient(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -75,19 +68,13 @@ const Ingredients = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/ingredients/', {
+      const data = await apiFetch<Ingredient>('/ingredients/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(newIngredient),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create ingredient');
-      }
-      
-      const data = await response.json();
       console.log('Created ingredient:', data);
       
       // Reset form and refresh ingredients list

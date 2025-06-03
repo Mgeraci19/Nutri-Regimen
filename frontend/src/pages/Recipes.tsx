@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiClient';
 
 interface Ingredient {
   id: number;
@@ -58,11 +59,7 @@ const Recipes = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/recipes/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch recipes');
-      }
-      const data = await response.json();
+      const data = await apiFetch<Recipe[]>('/recipes/');
       setRecipes(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -74,11 +71,7 @@ const Recipes = () => {
   // Fetch all ingredients for the dropdown
   const fetchIngredients = async () => {
     try {
-      const response = await fetch('http://localhost:8000/ingredients/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch ingredients');
-      }
-      const data = await response.json();
+      const data = await apiFetch<Ingredient[]>('/ingredients/');
       setIngredients(data);
     } catch (err) {
       console.error('Error fetching ingredients:', err);
@@ -91,11 +84,7 @@ const Recipes = () => {
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:8000/recipes/${id}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch recipe with ID ${id}`);
-      }
-      const data = await response.json();
+      const data = await apiFetch<Recipe>(`/recipes/${id}`);
       setSelectedRecipe(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -110,19 +99,13 @@ const Recipes = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/recipes/?user_id=1', {
+      const data = await apiFetch<Recipe>('/recipes/?user_id=1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(newRecipe),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create recipe');
-      }
-      
-      const data = await response.json();
       console.log('Created recipe:', data);
       
       // Reset form and refresh recipes list

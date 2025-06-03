@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiClient';
+import MealPlanGrid from '../components/MealPlanGrid';
 
 interface Ingredient {
   id: number;
@@ -86,11 +88,7 @@ const MealPlan = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/recipes/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch recipes');
-      }
-      const data = await response.json();
+      const data = await apiFetch<Recipe[]>('/recipes/');
       setRecipes(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -102,11 +100,7 @@ const MealPlan = () => {
   // Fetch saved meal plans
   const fetchSavedMealPlans = async () => {
     try {
-      const response = await fetch('http://localhost:8000/users/1/meal-plans/'); // Using user_id = 1 for now
-      if (!response.ok) {
-        throw new Error('Failed to fetch saved meal plans');
-      }
-      const data = await response.json();
+      const data = await apiFetch<SavedMealPlan[]>('/users/1/meal-plans/'); // Using user_id = 1 for now
       setSavedMealPlans(data);
     } catch (err) {
       console.error('Error fetching saved meal plans:', err);
@@ -146,32 +140,30 @@ const MealPlan = () => {
         }))
       };
 
-      let response;
+      let savedPlan: SavedMealPlan;
       if (currentMealPlan && !saveAsNew) {
         // Update existing meal plan
-        response = await fetch(`http://localhost:8000/meal-plans/${currentMealPlan.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(mealPlanData),
-        });
+        savedPlan = await apiFetch<SavedMealPlan>(
+          `/meal-plans/${currentMealPlan.id}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mealPlanData),
+          }
+        );
       } else {
         // Create new meal plan
-        response = await fetch('http://localhost:8000/meal-plans/?user_id=1', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(mealPlanData),
-        });
+        savedPlan = await apiFetch<SavedMealPlan>(
+          '/meal-plans/?user_id=1',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mealPlanData),
+          }
+        );
       }
 
-      if (!response.ok) {
-        throw new Error('Failed to save meal plan');
-      }
-
-      const savedPlan = await response.json();
+      console.log('Saved meal plan:', savedPlan);
       console.log('Saved meal plan:', savedPlan);
       
       if (!saveAsNew && currentMealPlan) {
@@ -215,14 +207,7 @@ const MealPlan = () => {
   const deleteSavedMealPlan = async (mealPlanId: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/meal-plans/${mealPlanId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete meal plan');
-      }
-
+      await apiFetch(`/meal-plans/${mealPlanId}`, { method: 'DELETE' });
       await fetchSavedMealPlans(); // Refresh the list
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -484,169 +469,18 @@ const MealPlan = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-          
-          {/* Recipe Selection Panel */}
-          <div className="xl:col-span-1">
-            <div className="card bg-base-200 shadow-xl h-fit">
-              <div className="card-body">
-                <h2 className="card-title">Available Recipes ({recipes.length})</h2>
-                <div className="max-h-96 overflow-y-auto space-y-2">
-                  {recipes.map(recipe => (
-                    <div 
-                      key={recipe.id}
-                      className={`p-3 rounded border cursor-pointer transition-colors ${
-                        selectedRecipe?.id === recipe.id 
-                          ? 'bg-primary text-primary-content border-primary' 
-                          : 'bg-base-100 border-base-300 hover:bg-base-300'
-                      }`}
-                      onClick={() => setSelectedRecipe(recipe)}
-                    >
-                      <div className="font-medium">{recipe.name}</div>
-                      <div className="text-sm opacity-70">{recipe.description}</div>
-                      <div className="text-xs mt-1">
-                        {recipe.ingredient_associations.length} ingredients
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {selectedRecipe && (
-                  <div className="mt-4 p-3 bg-primary/10 rounded">
-                    <div className="font-medium text-primary">Selected Recipe</div>
-                    <div className="text-sm">{selectedRecipe.name}</div>
-                    <div className="text-xs mt-2">
-                      Click on any meal slot to assign this recipe
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Weekly Meal Plan Grid */}
-          <div className="xl:col-span-3">
-            <div className="card bg-base-200 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title">Weekly Meal Plan</h2>
-                
-                {/* Days of the week grid */}
-                <div className="overflow-x-auto">
-                  <table className="table table-xs">
-                    <thead>
-                      <tr>
-                        <th className="w-20">Meal</th>
-                        {daysOfWeek.map(day => (
-                          <th key={day} className="text-center min-w-32">{day}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mealTypes.map(mealType => (
-                        <tr key={mealType}>
-                          <td className="font-medium capitalize bg-base-300">{mealType}</td>
-                          {daysOfWeek.map(day => {
-                            const recipe = getRecipeForSlot(day, mealType);
-                            return (
-                              <td key={`${day}-${mealType}`} className="p-1">
-                                <div
-                                  className={`min-h-16 p-2 rounded border-2 border-dashed cursor-pointer transition-colors ${
-                                    recipe 
-                                      ? 'bg-success/20 border-success hover:bg-success/30' 
-                                      : 'bg-base-100 border-base-300 hover:bg-base-300'
-                                  }`}
-                                  onClick={() => {
-                                    if (selectedRecipe) {
-                                      assignRecipeToSlot(day, mealType, selectedRecipe);
-                                    } else if (recipe) {
-                                      assignRecipeToSlot(day, mealType, null);
-                                    }
-                                  }}
-                                >
-                                  {recipe ? (
-                                    <div className="text-xs">
-                                      <div className="font-medium text-success">{recipe.name}</div>
-                                      <div className="opacity-70 truncate">{recipe.description}</div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-xs text-base-content/50 text-center">
-                                      Click to add recipe
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            {/* Daily Nutrition Summary */}
-            <div className="card bg-base-200 shadow-xl mt-4">
-              <div className="card-body">
-                <h2 className="card-title">Daily Nutrition Summary</h2>
-                <div className="overflow-x-auto">
-                  <table className="table table-sm">
-                    <thead>
-                      <tr>
-                        <th>Day</th>
-                        <th>Calories</th>
-                        <th>Protein (g)</th>
-                        <th>Carbs (g)</th>
-                        <th>Fat (g)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {daysOfWeek.map(day => {
-                        const nutrition = calculateDayNutrition(day);
-                        return (
-                          <tr key={day}>
-                            <td className="font-medium">{day}</td>
-                            <td>{Math.round(nutrition.calories)}</td>
-                            <td>{Math.round(nutrition.protein)}</td>
-                            <td>{Math.round(nutrition.carbs)}</td>
-                            <td>{Math.round(nutrition.fat)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Weekly Summary Stats */}
-        <div className="stats shadow">
-          <div className="stat">
-            <div className="stat-title">Total Meals Planned</div>
-            <div className="stat-value">
-              {mealPlan.filter(slot => slot.recipe).length}
-            </div>
-            <div className="stat-desc">out of {mealPlan.length} slots</div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Unique Recipes Used</div>
-            <div className="stat-value">
-              {new Set(mealPlan.filter(slot => slot.recipe).map(slot => slot.recipe!.id)).size}
-            </div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Completion</div>
-            <div className="stat-value">
-              {Math.round((mealPlan.filter(slot => slot.recipe).length / mealPlan.length) * 100)}%
-            </div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Saved Plans</div>
-            <div className="stat-value">{savedMealPlans.length}</div>
-          </div>
-        </div>
+        <MealPlanGrid
+          recipes={recipes}
+          selectedRecipe={selectedRecipe}
+          setSelectedRecipe={setSelectedRecipe}
+          daysOfWeek={daysOfWeek}
+          mealTypes={mealTypes}
+          getRecipeForSlot={getRecipeForSlot}
+          assignRecipeToSlot={assignRecipeToSlot}
+          calculateDayNutrition={calculateDayNutrition}
+          mealPlan={mealPlan}
+          savedMealPlans={savedMealPlans}
+        />
       </div>
     </div>
   );
