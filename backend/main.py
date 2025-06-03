@@ -200,3 +200,24 @@ def delete_meal_plan(meal_plan_id: int, db: Session = Depends(get_db)):
     if db_meal_plan is None:
         raise HTTPException(status_code=404, detail="Meal plan not found")
     return db_meal_plan
+
+# Weekly Assignment endpoints
+@app.post("/weekly-assignments/", response_model=schemas.WeeklyAssignment, status_code=status.HTTP_201_CREATED)
+def create_weekly_assignment(assignment: schemas.WeeklyAssignmentCreate, db: Session = Depends(get_db)):
+    # Check if assignment already exists for this week and user
+    existing = crud.get_weekly_assignment_by_week(db, assignment.week_start_date, assignment.user_id)
+    if existing:
+        # Update existing assignment
+        return crud.update_weekly_assignment(db, existing.id, assignment)
+    return crud.create_weekly_assignment(db=db, assignment=assignment)
+
+@app.get("/users/{user_id}/weekly-assignments/", response_model=List[schemas.WeeklyAssignment])
+def read_user_weekly_assignments(user_id: int, db: Session = Depends(get_db)):
+    return crud.get_user_weekly_assignments(db, user_id=user_id)
+
+@app.delete("/weekly-assignments/{assignment_id}", response_model=schemas.WeeklyAssignment)
+def delete_weekly_assignment(assignment_id: int, db: Session = Depends(get_db)):
+    db_assignment = crud.delete_weekly_assignment(db, assignment_id=assignment_id)
+    if db_assignment is None:
+        raise HTTPException(status_code=404, detail="Weekly assignment not found")
+    return db_assignment

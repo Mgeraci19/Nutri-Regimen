@@ -46,3 +46,30 @@ export interface SavedMealPlan {
   updated_at: string;
   meal_plan_items: MealPlanItem[];
 }
+
+export interface WeeklyAssignment {
+  id?: number;
+  week_start_date: string; // ISO date string (Monday of that week)
+  meal_plan_id: number;
+  user_id: number;
+  created_at?: string;
+  updated_at?: string;
+  meal_plan: SavedMealPlan;
+}
+
+export interface CalendarWeek {
+  weekNumber: number;
+  startDate: Date;
+  endDate: Date;
+  assignment?: WeeklyAssignment;
+}
+
+export interface MonthlyStats {
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  uniqueRecipes: number;
+  assignedWeeks: number;
+  totalWeeks: number;
+}

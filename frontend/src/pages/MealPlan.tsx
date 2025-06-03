@@ -3,7 +3,7 @@ import MealPlanGrid from '../components/MealPlanGrid';
 import SaveMealPlanModal from '../components/SaveMealPlanModal';
 import LoadMealPlanModal from '../components/LoadMealPlanModal';
 import { useMealPlan, daysOfWeek, mealTypes } from '../hooks/useMealPlan';
-import { Recipe, SavedMealPlan } from '../types';
+import type { Recipe, SavedMealPlan } from '../types';
 
 const MealPlan = () => {
   const {

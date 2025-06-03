@@ -79,3 +79,17 @@ class MealPlanItem(Base):
     # Relationships
     meal_plan = relationship("MealPlan", back_populates="meal_plan_items")
     recipe = relationship("Recipe", back_populates="meal_plan_items")
+
+class WeeklyAssignment(Base):
+    __tablename__ = "weekly_assignments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    week_start_date = Column(String, index=True)  # ISO date string (Monday of that week)
+    meal_plan_id = Column(Integer, ForeignKey("meal_plans.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User")
+    meal_plan = relationship("MealPlan")

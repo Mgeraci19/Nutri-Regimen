@@ -1,25 +1,25 @@
-import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
-import Weekly from "./pages/Weekly";
-import Ingredients from "./pages/Ingredients";
-import Recipes from "./pages/Recipes";
-import MealPlan from "./pages/MealPlan";
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import MealPlan from './pages/MealPlan';
+import WeeklyPlanner from './pages/WeeklyPlanner';
+import Ingredients from './pages/Ingredients';
+import Recipes from './pages/Recipes';
 
-const App = () => {
-    return (
-        <Layout>
-            <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/weekly" element={<Weekly />} />
-                <Route path="/ingredients" element={<Ingredients />} />
-                <Route path="/recipes" element={<Recipes />} />
-                <Route path="/meal-plan" element={<MealPlan />} />
-                <Route path="*" element={<div>404 - Page not found</div>} />
-            </Routes>
-        </Layout>
-    );
-};
+function App() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/meal-plan" element={<MealPlan />} />
+        <Route path="/weekly" element={<WeeklyPlanner />} />
+        <Route path="/ingredients" element={<Ingredients />} />
+        <Route path="/recipes" element={<Recipes />} />
+      </Routes>
+    </Layout>
+  );
+}
 
 export default App;

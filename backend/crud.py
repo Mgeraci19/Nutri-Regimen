@@ -180,3 +180,49 @@ def update_meal_plan(db: Session, meal_plan_id: int, meal_plan: MealPlanCreate):
     db.refresh(db_meal_plan)
     return db_meal_plan
 
+# Weekly Assignment CRUD operations
+def create_weekly_assignment(db: Session, assignment: schemas.WeeklyAssignmentCreate):
+    db_assignment = models.WeeklyAssignment(
+        week_start_date=assignment.week_start_date,
+        meal_plan_id=assignment.meal_plan_id,
+        user_id=assignment.user_id
+    )
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+def get_weekly_assignment_by_week(db: Session, week_start_date: str, user_id: int):
+    return db.query(models.WeeklyAssignment).filter(
+        models.WeeklyAssignment.week_start_date == week_start_date,
+        models.WeeklyAssignment.user_id == user_id
+    ).first()
+
+def get_user_weekly_assignments(db: Session, user_id: int):
+    return db.query(models.WeeklyAssignment).filter(
+        models.WeeklyAssignment.user_id == user_id
+    ).all()
+
+def update_weekly_assignment(db: Session, assignment_id: int, assignment: schemas.WeeklyAssignmentCreate):
+    db_assignment = db.query(models.WeeklyAssignment).filter(
+        models.WeeklyAssignment.id == assignment_id
+    ).first()
+    if not db_assignment:
+        return None
+    
+    db_assignment.meal_plan_id = assignment.meal_plan_id
+    db_assignment.updated_at = models.datetime.utcnow()
+    
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+def delete_weekly_assignment(db: Session, assignment_id: int):
+    db_assignment = db.query(models.WeeklyAssignment).filter(
+        models.WeeklyAssignment.id == assignment_id
+    ).first()
+    if db_assignment:
+        db.delete(db_assignment)
+        db.commit()
+    return db_assignment
+

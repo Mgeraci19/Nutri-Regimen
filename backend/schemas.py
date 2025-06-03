@@ -1,5 +1,5 @@
-from typing import List, Optional
 from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
 
 # User schemas
@@ -109,7 +109,6 @@ class MealPlanCreate(MealPlanBase):
 
 class MealPlanUpdate(BaseModel):
     name: Optional[str] = None
-    meal_plan_items: Optional[List[MealPlanItemCreate]] = None
 
 class MealPlan(MealPlanBase):
     id: int
@@ -118,6 +117,24 @@ class MealPlan(MealPlanBase):
     updated_at: datetime
     meal_plan_items: List[MealPlanItem] = []
     
+    class Config:
+        from_attributes = True
+
+# Weekly Assignment schemas
+class WeeklyAssignmentBase(BaseModel):
+    week_start_date: str
+    meal_plan_id: int
+    user_id: int
+
+class WeeklyAssignmentCreate(WeeklyAssignmentBase):
+    pass
+
+class WeeklyAssignment(WeeklyAssignmentBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    meal_plan: MealPlan
+
     class Config:
         from_attributes = True
 
