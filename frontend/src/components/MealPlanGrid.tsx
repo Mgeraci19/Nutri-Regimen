@@ -1,49 +1,5 @@
 import React from 'react';
-
-interface Ingredient {
-  id: number;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
-
-interface RecipeIngredient {
-  ingredient_id: number;
-  amount: number;
-  unit: string;
-  ingredient: Ingredient;
-}
-
-interface Recipe {
-  id: number;
-  name: string;
-  description: string;
-  instructions: string;
-  user_id: number;
-  ingredient_associations: RecipeIngredient[];
-}
-
-interface MealSlot {
-  day: string;
-  meal: string;
-  recipe: Recipe | null;
-}
-
-interface SavedMealPlan {
-  id: number;
-  meal_plan_items: MealPlanItem[];
-}
-
-interface MealPlanItem {
-  id: number;
-  meal_plan_id: number;
-  recipe_id: number;
-  day_of_week: string;
-  meal_type: string;
-  recipe: Recipe;
-}
+import { Recipe, MealSlot, SavedMealPlan } from '../types';
 
 interface Props {
   recipes: Recipe[];
