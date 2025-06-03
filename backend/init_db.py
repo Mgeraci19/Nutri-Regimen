@@ -8,7 +8,7 @@ import os
 from database import engine, SessionLocal, Base
 import models
 import crud
-from schemas import UserCreate, IngredientCreate, RecipeCreate, RecipeIngredientCreate
+from schemas import UserCreate, IngredientCreate, RecipeCreate, RecipeIngredientCreate, MealPlanCreate, MealPlanItemCreate
 
 # Create database tables
 def init_db():
@@ -213,6 +213,55 @@ def init_db():
             db_recipe = crud.create_recipe(db, recipe, user_id)
             print(f"Created recipe: {db_recipe.name} for user {db_users[i % len(db_users)].username}")
         
+        # Create sample meal plans
+        print("Creating sample meal plans...")
+        
+        # Get all created recipes for meal plan assignment
+        all_recipes = crud.get_recipes(db, skip=0, limit=100)
+        
+        meal_plans_data = [
+            MealPlanCreate(
+                name="Healthy Week Plan",
+                meal_plan_items=[
+                    MealPlanItemCreate(recipe_id=all_recipes[0].id, day_of_week="Monday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[2].id, day_of_week="Monday", meal_type="lunch"),
+                    MealPlanItemCreate(recipe_id=all_recipes[4].id, day_of_week="Monday", meal_type="dinner"),
+                    MealPlanItemCreate(recipe_id=all_recipes[1].id, day_of_week="Tuesday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[3].id, day_of_week="Tuesday", meal_type="lunch"),
+                    MealPlanItemCreate(recipe_id=all_recipes[5].id, day_of_week="Tuesday", meal_type="dinner"),
+                    MealPlanItemCreate(recipe_id=all_recipes[7].id, day_of_week="Wednesday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[2].id, day_of_week="Wednesday", meal_type="lunch"),
+                    MealPlanItemCreate(recipe_id=all_recipes[4].id, day_of_week="Wednesday", meal_type="dinner"),
+                ]
+            ),
+            MealPlanCreate(
+                name="Protein Focus Plan",
+                meal_plan_items=[
+                    MealPlanItemCreate(recipe_id=all_recipes[0].id, day_of_week="Monday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[2].id, day_of_week="Monday", meal_type="lunch"),
+                    MealPlanItemCreate(recipe_id=all_recipes[4].id, day_of_week="Tuesday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[5].id, day_of_week="Tuesday", meal_type="dinner"),
+                    MealPlanItemCreate(recipe_id=all_recipes[6].id, day_of_week="Wednesday", meal_type="lunch"),
+                ]
+            ),
+            MealPlanCreate(
+                name="Quick & Easy Week",
+                meal_plan_items=[
+                    MealPlanItemCreate(recipe_id=all_recipes[1].id, day_of_week="Sunday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[3].id, day_of_week="Sunday", meal_type="lunch"),
+                    MealPlanItemCreate(recipe_id=all_recipes[6].id, day_of_week="Sunday", meal_type="dinner"),
+                    MealPlanItemCreate(recipe_id=all_recipes[7].id, day_of_week="Monday", meal_type="breakfast"),
+                    MealPlanItemCreate(recipe_id=all_recipes[2].id, day_of_week="Monday", meal_type="lunch"),
+                ]
+            ),
+        ]
+        
+        # Create meal plans for different users
+        for i, meal_plan in enumerate(meal_plans_data):
+            user_id = db_users[i % len(db_users)].id  # Distribute meal plans among users
+            db_meal_plan = crud.create_meal_plan(db, meal_plan, user_id)
+            print(f"Created meal plan: {db_meal_plan.name} for user {db_users[i % len(db_users)].username}")
+
         print("Sample data creation completed successfully!")
         
     finally:

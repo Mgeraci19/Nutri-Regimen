@@ -1,6 +1,6 @@
 # Nutri-Regimen Backend
 
-This is the backend for the Nutri-Regimen application, a nutrition tracking system built with FastAPI and SQLite.
+This is the backend for the Nutri-Regimen application, a nutrition tracking and meal planning system built with FastAPI and SQLite.
 
 ## Database Implementation
 
@@ -10,10 +10,12 @@ The application uses SQLite as its database, with SQLAlchemy as the ORM (Object-
 
 The database consists of the following tables:
 
-- **users**: Stores user information
-- **foods**: Stores nutritional information about different foods
-- **meals**: Stores meal information for users
-- **meal_food**: Association table for the many-to-many relationship between meals and foods
+- **users**: Stores user information (id, email, username, hashed_password)
+- **ingredients**: Stores nutritional information about different ingredients (id, name, calories, protein, carbs, fat)
+- **recipes**: Stores recipe information with instructions (id, name, description, instructions, user_id)
+- **recipe_ingredients**: Association table linking recipes to ingredients with amounts (recipe_id, ingredient_id, amount, unit)
+- **meal_plans**: Stores meal plan information for users (id, name, user_id, created_at, updated_at)
+- **meal_plan_items**: Individual meal assignments within meal plans (id, meal_plan_id, recipe_id, day_of_week, meal_type)
 
 ## Setup and Installation
 
@@ -28,6 +30,8 @@ pip install -r requirements.txt
 ```bash
 python init_db.py
 ```
+
+This will create 5 sample users, 44 ingredients, 8 recipes, and 3 meal plans.
 
 3. Run the application:
 
@@ -54,22 +58,26 @@ Once the application is running, you can access the interactive API documentatio
 - `PUT /users/{user_id}`: Update a user
 - `DELETE /users/{user_id}`: Delete a user
 
-### Foods
+### Ingredients
 
-- `POST /foods/`: Create a new food
-- `GET /foods/`: Get all foods
-- `GET /foods/{food_id}`: Get a specific food
-- `PUT /foods/{food_id}`: Update a food
-- `DELETE /foods/{food_id}`: Delete a food
+- `POST /ingredients/`: Create a new ingredient
+- `GET /ingredients/`: Get all ingredients
+- `GET /ingredients/{ingredient_id}`: Get a specific ingredient
 
-### Meals
+### Recipes
 
-- `POST /meals/`: Create a new meal
-- `GET /meals/`: Get all meals
-- `GET /meals/{meal_id}`: Get a specific meal
-- `PUT /meals/{meal_id}`: Update a meal
-- `DELETE /meals/{meal_id}`: Delete a meal
-- `GET /users/{user_id}/meals/`: Get all meals for a specific user
+- `POST /recipes/?user_id={user_id}`: Create a new recipe (with ingredients)
+- `GET /recipes/`: Get all recipes
+- `GET /recipes/{recipe_id}`: Get a specific recipe
+
+### Meal Plans
+
+- `POST /meal-plans/?user_id={user_id}`: Create a new meal plan
+- `GET /meal-plans/`: Get all meal plans
+- `GET /meal-plans/{meal_plan_id}`: Get a specific meal plan
+- `PUT /meal-plans/{meal_plan_id}`: Update a meal plan
+- `DELETE /meal-plans/{meal_plan_id}`: Delete a meal plan
+- `GET /users/{user_id}/meal-plans/`: Get all meal plans for a specific user
 
 ## Database Files
 
@@ -77,10 +85,26 @@ Once the application is running, you can access the interactive API documentatio
 - `models.py`: Defines SQLAlchemy ORM models
 - `schemas.py`: Defines Pydantic models for request/response validation
 - `crud.py`: Contains database CRUD operations
-- `init_db.py`: Script to initialize the database with sample data
+- `init_db.py`: Script to initialize the database with comprehensive sample data
 
 ## SQLite Database File
 
 The SQLite database is stored in a file named `nutri_regimen.db` in the root directory of the backend. This file is created automatically when the application starts if it doesn't exist.
 
-You can also manually initialize the database with sample data by running the `init_db.py` script.
+The `init_db.py` script will remove and recreate the database file each time it's run, so use it carefully in development.
+
+## Frontend Integration
+
+This backend is designed to work with the React + TypeScript frontend located in the `frontend/` directory. The frontend includes:
+
+- Interactive meal planning interface
+- Ingredient management
+- Recipe viewing (creation UI in progress)
+- Simple navigation without React Router
+
+## CORS Configuration
+
+The backend is configured to accept requests from:
+- http://localhost:5173 (Vite default)
+- http://localhost:5174 (Vite alternative)
+- http://localhost:3000 (Create React App default)

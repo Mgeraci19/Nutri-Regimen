@@ -66,78 +66,6 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# Food endpoints
-@app.post("/foods/", response_model=schemas.Food, status_code=status.HTTP_201_CREATED)
-def create_food(food: schemas.FoodCreate, db: Session = Depends(get_db)):
-    return crud.create_food(db=db, food=food)
-
-@app.get("/foods/", response_model=List[schemas.Food])
-def read_foods(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    foods = crud.get_foods(db, skip=skip, limit=limit)
-    return foods
-
-@app.get("/foods/{food_id}", response_model=schemas.Food)
-def read_food(food_id: int, db: Session = Depends(get_db)):
-    db_food = crud.get_food(db, food_id=food_id)
-    if db_food is None:
-        raise HTTPException(status_code=404, detail="Food not found")
-    return db_food
-
-@app.put("/foods/{food_id}", response_model=schemas.Food)
-def update_food(food_id: int, food: schemas.FoodUpdate, db: Session = Depends(get_db)):
-    db_food = crud.update_food(db, food_id=food_id, food=food)
-    if db_food is None:
-        raise HTTPException(status_code=404, detail="Food not found")
-    return db_food
-
-@app.delete("/foods/{food_id}", response_model=schemas.Food)
-def delete_food(food_id: int, db: Session = Depends(get_db)):
-    db_food = crud.delete_food(db, food_id=food_id)
-    if db_food is None:
-        raise HTTPException(status_code=404, detail="Food not found")
-    return db_food
-
-# Meal endpoints
-@app.post("/meals/", response_model=schemas.Meal, status_code=status.HTTP_201_CREATED)
-def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
-    return crud.create_meal(db=db, meal=meal)
-
-@app.get("/meals/", response_model=List[schemas.Meal])
-def read_meals(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    meals = crud.get_meals(db, skip=skip, limit=limit)
-    return meals
-
-@app.get("/meals/{meal_id}", response_model=schemas.Meal)
-def read_meal(meal_id: int, db: Session = Depends(get_db)):
-    db_meal = crud.get_meal(db, meal_id=meal_id)
-    if db_meal is None:
-        raise HTTPException(status_code=404, detail="Meal not found")
-    return db_meal
-
-@app.get("/users/{user_id}/meals/", response_model=List[schemas.Meal])
-def read_user_meals(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    meals = crud.get_user_meals(db, user_id=user_id, skip=skip, limit=limit)
-    return meals
-
-@app.put("/meals/{meal_id}", response_model=schemas.Meal)
-def update_meal(meal_id: int, meal: schemas.MealUpdate, db: Session = Depends(get_db)):
-    db_meal = crud.update_meal(db, meal_id=meal_id, meal=meal)
-    if db_meal is None:
-        raise HTTPException(status_code=404, detail="Meal not found")
-    return db_meal
-
-@app.delete("/meals/{meal_id}", response_model=schemas.Meal)
-def delete_meal(meal_id: int, db: Session = Depends(get_db)):
-    db_meal = crud.delete_meal(db, meal_id=meal_id)
-    if db_meal is None:
-        raise HTTPException(status_code=404, detail="Meal not found")
-    return db_meal
-
-
 # Ingredient endpoints
 @app.post("/ingredients/", response_model=schemas.Ingredient, status_code=status.HTTP_201_CREATED)
 def create_ingredient(ingredient: schemas.IngredientCreate, db: Session = Depends(get_db)):
@@ -172,4 +100,42 @@ def read_recipe(recipe_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Recipe not found")
     return db_recipe
 
-# ...existing code...
+# Meal Plan endpoints
+@app.post("/meal-plans/", response_model=schemas.MealPlan, status_code=status.HTTP_201_CREATED)
+def create_meal_plan(meal_plan: schemas.MealPlanCreate, user_id: int, db: Session = Depends(get_db)):
+    return crud.create_meal_plan(db=db, meal_plan=meal_plan, user_id=user_id)
+
+@app.get("/meal-plans/", response_model=List[schemas.MealPlan])
+def read_meal_plans(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    meal_plans = crud.get_meal_plans(db, skip=skip, limit=limit)
+    return meal_plans
+
+@app.get("/meal-plans/{meal_plan_id}", response_model=schemas.MealPlan)
+def read_meal_plan(meal_plan_id: int, db: Session = Depends(get_db)):
+    db_meal_plan = crud.get_meal_plan(db, meal_plan_id=meal_plan_id)
+    if db_meal_plan is None:
+        raise HTTPException(status_code=404, detail="Meal plan not found")
+    return db_meal_plan
+
+@app.get("/users/{user_id}/meal-plans/", response_model=List[schemas.MealPlan])
+def read_user_meal_plans(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    meal_plans = crud.get_user_meal_plans(db, user_id=user_id, skip=skip, limit=limit)
+    return meal_plans
+
+@app.put("/meal-plans/{meal_plan_id}", response_model=schemas.MealPlan)
+def update_meal_plan(meal_plan_id: int, meal_plan: schemas.MealPlanCreate, db: Session = Depends(get_db)):
+    db_meal_plan = crud.update_meal_plan(db, meal_plan_id=meal_plan_id, meal_plan=meal_plan)
+    if db_meal_plan is None:
+        raise HTTPException(status_code=404, detail="Meal plan not found")
+    return db_meal_plan
+
+@app.delete("/meal-plans/{meal_plan_id}", response_model=schemas.MealPlan)
+def delete_meal_plan(meal_plan_id: int, db: Session = Depends(get_db)):
+    db_meal_plan = crud.delete_meal_plan(db, meal_plan_id=meal_plan_id)
+    if db_meal_plan is None:
+        raise HTTPException(status_code=404, detail="Meal plan not found")
+    return db_meal_plan

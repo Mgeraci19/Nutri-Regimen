@@ -83,14 +83,52 @@ class Recipe(RecipeBase):
     class Config:
         from_attributes = True
 
-# Extended User schema with recipes
-class UserWithRecipes(User):
-    recipes: List[Recipe] = []
+# Meal Plan Item schemas
+class MealPlanItemBase(BaseModel):
+    recipe_id: int
+    day_of_week: str
+    meal_type: str
+
+class MealPlanItemCreate(MealPlanItemBase):
+    pass
+
+class MealPlanItem(MealPlanItemBase):
+    id: int
+    meal_plan_id: int
+    recipe: Recipe
+    
+    class Config:
+        from_attributes = True
+
+# Meal Plan schemas
+class MealPlanBase(BaseModel):
+    name: str
+
+class MealPlanCreate(MealPlanBase):
+    meal_plan_items: List[MealPlanItemCreate]
+
+class MealPlanUpdate(BaseModel):
+    name: Optional[str] = None
+    meal_plan_items: Optional[List[MealPlanItemCreate]] = None
+
+class MealPlan(MealPlanBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    meal_plan_items: List[MealPlanItem] = []
+    
+    class Config:
+        from_attributes = True
+
+# Extended User schema with meal plans
+class UserWithMealPlans(User):
+    meal_plans: List[MealPlan] = []
 
     class Config:
         from_attributes = True
 
-# Legacy schemas (keeping for compatibility if needed)
+# Legacy schemas (keeping for compatibility)
 class FoodBase(BaseModel):
     name: str
     calories: float
@@ -131,6 +169,13 @@ class Meal(MealBase):
     date: datetime
     user_id: int
     foods: List[Food] = []
+
+    class Config:
+        from_attributes = True
+
+# Extended User schema with recipes
+class UserWithRecipes(User):
+    recipes: List[Recipe] = []
 
     class Config:
         from_attributes = True

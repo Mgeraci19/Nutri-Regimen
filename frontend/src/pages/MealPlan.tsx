@@ -31,13 +31,36 @@ interface MealSlot {
   recipe: Recipe | null;
 }
 
+interface SavedMealPlan {
+  id: number;
+  name: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+  meal_plan_items: MealPlanItem[];
+}
+
+interface MealPlanItem {
+  id: number;
+  meal_plan_id: number;
+  recipe_id: number;
+  day_of_week: string;
+  meal_type: string;
+  recipe: Recipe;
+}
+
 const MealPlan = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [mealPlan, setMealPlan] = useState<MealSlot[]>([]);
+  const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>([]);
+  const [currentMealPlan, setCurrentMealPlan] = useState<SavedMealPlan | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<{day: string, meal: string} | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+  const [showLoadModal, setShowLoadModal] = useState<boolean>(false);
+  const [mealPlanName, setMealPlanName] = useState<string>('');
+  const [saveAsNew, setSaveAsNew] = useState<boolean>(false);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const mealTypes = ['breakfast', 'lunch', 'dinner'] as const;
@@ -76,10 +99,137 @@ const MealPlan = () => {
     }
   };
 
-  // Load recipes when component mounts
+  // Fetch saved meal plans
+  const fetchSavedMealPlans = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/users/1/meal-plans/'); // Using user_id = 1 for now
+      if (!response.ok) {
+        throw new Error('Failed to fetch saved meal plans');
+      }
+      const data = await response.json();
+      setSavedMealPlans(data);
+    } catch (err) {
+      console.error('Error fetching saved meal plans:', err);
+    }
+  };
+
+  // Load recipes and saved meal plans when component mounts
   useEffect(() => {
     fetchRecipes();
+    fetchSavedMealPlans();
   }, []);
+
+  // Save meal plan to database
+  const saveMealPlan = async () => {
+    if (!mealPlanName.trim()) {
+      setError('Please enter a meal plan name');
+      return;
+    }
+
+    const filledSlots = mealPlan.filter(slot => slot.recipe);
+    
+    if (filledSlots.length === 0) {
+      setError('Please add at least one recipe to your meal plan');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const mealPlanData = {
+        name: mealPlanName,
+        meal_plan_items: filledSlots.map(slot => ({
+          recipe_id: slot.recipe!.id,
+          day_of_week: slot.day,
+          meal_type: slot.meal
+        }))
+      };
+
+      let response;
+      if (currentMealPlan && !saveAsNew) {
+        // Update existing meal plan
+        response = await fetch(`http://localhost:8000/meal-plans/${currentMealPlan.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mealPlanData),
+        });
+      } else {
+        // Create new meal plan
+        response = await fetch('http://localhost:8000/meal-plans/?user_id=1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mealPlanData),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to save meal plan');
+      }
+
+      const savedPlan = await response.json();
+      console.log('Saved meal plan:', savedPlan);
+      
+      if (!saveAsNew && currentMealPlan) {
+        setCurrentMealPlan(savedPlan);
+      } else {
+        setCurrentMealPlan(savedPlan);
+      }
+      
+      setMealPlanName('');
+      setShowSaveModal(false);
+      setSaveAsNew(false);
+      await fetchSavedMealPlans();
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load meal plan from database
+  const loadMealPlan = async (savedPlan: SavedMealPlan) => {
+    // Clear current meal plan
+    const clearedPlan = mealPlan.map(slot => ({ ...slot, recipe: null }));
+    
+    // Load recipes from saved plan
+    const loadedPlan = clearedPlan.map(slot => {
+      const savedItem = savedPlan.meal_plan_items.find(
+        item => item.day_of_week === slot.day && item.meal_type === slot.meal
+      );
+      
+      return savedItem ? { ...slot, recipe: savedItem.recipe } : slot;
+    });
+    
+    setMealPlan(loadedPlan);
+    setCurrentMealPlan(savedPlan);
+    setShowLoadModal(false);
+  };
+
+  // Delete saved meal plan
+  const deleteSavedMealPlan = async (mealPlanId: number) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/meal-plans/${mealPlanId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete meal plan');
+      }
+
+      await fetchSavedMealPlans(); // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Assign recipe to meal slot
   const assignRecipeToSlot = (day: string, meal: string, recipe: Recipe | null) => {
@@ -106,7 +256,7 @@ const MealPlan = () => {
       if (!slot.recipe) return total;
       
       const recipeNutrition = slot.recipe.ingredient_associations.reduce((recipeTotal, ingredient) => {
-        const factor = ingredient.amount / 100; // Assuming nutrition is per 100g
+        const factor = ingredient.amount / 100;
         return {
           calories: recipeTotal.calories + (ingredient.ingredient.calories * factor),
           protein: recipeTotal.protein + (ingredient.ingredient.protein * factor),
@@ -129,14 +279,46 @@ const MealPlan = () => {
     setMealPlan(prevPlan => 
       prevPlan.map(slot => ({ ...slot, recipe: null }))
     );
+    setCurrentMealPlan(null);
+  };
+
+  const openSaveModal = () => {
+    if (currentMealPlan) {
+      setMealPlanName(currentMealPlan.name);
+      setSaveAsNew(false);
+    } else {
+      setMealPlanName('');
+      setSaveAsNew(true);
+    }
+    setShowSaveModal(true);
   };
 
   return (
     <div className="w-full h-full bg-base-100 p-4">
       <div className="flex flex-col gap-4">
         <div className="flex flex-row justify-between items-center">
-          <h1 className="text-2xl font-bold">Weekly Meal Planner</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Weekly Meal Planner</h1>
+            {currentMealPlan && (
+              <div className="text-sm opacity-70 mt-1">
+                Currently loaded: <span className="font-medium text-primary">{currentMealPlan.name}</span>
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
+            <button 
+              className="btn btn-info" 
+              onClick={() => setShowLoadModal(true)}
+            >
+              Load Plan
+            </button>
+            <button 
+              className="btn btn-success" 
+              onClick={openSaveModal}
+              disabled={mealPlan.filter(slot => slot.recipe).length === 0}
+            >
+              Save Plan
+            </button>
             <button 
               className="btn btn-warning" 
               onClick={clearMealPlan}
@@ -152,6 +334,141 @@ const MealPlan = () => {
             </button>
           </div>
         </div>
+
+        {/* Save Modal */}
+        {showSaveModal && (
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Save Meal Plan</h3>
+              <div className="py-4">
+                {currentMealPlan && (
+                  <div className="mb-4">
+                    <div className="form-control">
+                      <label className="label cursor-pointer">
+                        <span className="label-text">Update existing plan: "{currentMealPlan.name}"</span>
+                        <input 
+                          type="radio" 
+                          name="save-option" 
+                          className="radio checked:bg-primary" 
+                          checked={!saveAsNew}
+                          onChange={() => {
+                            setSaveAsNew(false);
+                            setMealPlanName(currentMealPlan.name);
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="form-control">
+                      <label className="label cursor-pointer">
+                        <span className="label-text">Save as new plan</span>
+                        <input 
+                          type="radio" 
+                          name="save-option" 
+                          className="radio checked:bg-primary" 
+                          checked={saveAsNew}
+                          onChange={() => {
+                            setSaveAsNew(true);
+                            setMealPlanName('');
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">
+                      {saveAsNew || !currentMealPlan ? 'New Meal Plan Name' : 'Meal Plan Name'}
+                    </span>
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Enter meal plan name" 
+                    className="input input-bordered"
+                    value={mealPlanName}
+                    onChange={(e) => setMealPlanName(e.target.value)}
+                    disabled={!saveAsNew && currentMealPlan}
+                  />
+                </div>
+                <div className="mt-4 text-sm">
+                  <strong>Meals to save:</strong> {mealPlan.filter(slot => slot.recipe).length} recipes
+                </div>
+              </div>
+              <div className="modal-action">
+                <button 
+                  className="btn btn-success"
+                  onClick={saveMealPlan}
+                  disabled={loading || !mealPlanName.trim()}
+                >
+                  {loading ? 'Saving...' : (saveAsNew || !currentMealPlan ? 'Save New' : 'Update')}
+                </button>
+                <button 
+                  className="btn"
+                  onClick={() => {
+                    setShowSaveModal(false);
+                    setMealPlanName('');
+                    setSaveAsNew(false);
+                    setError(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Load Modal */}
+        {showLoadModal && (
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Load Meal Plan</h3>
+              <div className="py-4">
+                {savedMealPlans.length === 0 ? (
+                  <p>No saved meal plans found.</p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {savedMealPlans.map(plan => (
+                      <div key={plan.id} className="card bg-base-200 p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">{plan.name}</div>
+                            <div className="text-sm opacity-70">
+                              {plan.meal_plan_items.length} meals • Created {new Date(plan.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              className="btn btn-sm btn-primary"
+                              onClick={() => loadMealPlan(plan)}
+                            >
+                              Load
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-error"
+                              onClick={() => deleteSavedMealPlan(plan.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="modal-action">
+                <button 
+                  className="btn"
+                  onClick={() => setShowLoadModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error display */}
         {error && (
@@ -324,6 +641,10 @@ const MealPlan = () => {
             <div className="stat-value">
               {Math.round((mealPlan.filter(slot => slot.recipe).length / mealPlan.length) * 100)}%
             </div>
+          </div>
+          <div className="stat">
+            <div className="stat-title">Saved Plans</div>
+            <div className="stat-value">{savedMealPlans.length}</div>
           </div>
         </div>
       </div>
