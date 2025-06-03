@@ -143,27 +143,18 @@ const MealPlan = () => {
       let savedPlan: SavedMealPlan;
       if (currentMealPlan && !saveAsNew) {
         // Update existing meal plan
-        savedPlan = await apiFetch<SavedMealPlan>(
-          `/meal-plans/${currentMealPlan.id}`,
-          {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mealPlanData),
-          }
-        );
+        savedPlan = await apiFetch<SavedMealPlan>(`/meal-plans/${currentMealPlan.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(mealPlanData),
+        });
       } else {
         // Create new meal plan
-        savedPlan = await apiFetch<SavedMealPlan>(
-          '/meal-plans/?user_id=1',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mealPlanData),
-          }
-        );
+        savedPlan = await apiFetch<SavedMealPlan>('/meal-plans/?user_id=1', {
+          method: 'POST',
+          body: JSON.stringify(mealPlanData),
+        });
       }
 
-      console.log('Saved meal plan:', savedPlan);
       console.log('Saved meal plan:', savedPlan);
       
       if (!saveAsNew && currentMealPlan) {

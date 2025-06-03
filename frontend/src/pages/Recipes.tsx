@@ -94,16 +94,13 @@ const Recipes = () => {
   };
 
   // Create new recipe
-  const createRecipe = async () => {
+  const handleCreateRecipe = async () => {
     setLoading(true);
     setError(null);
     
     try {
       const data = await apiFetch<Recipe>('/recipes/?user_id=1', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(newRecipe),
       });
       console.log('Created recipe:', data);
@@ -311,7 +308,7 @@ const Recipes = () => {
               <div className="card-actions justify-end mt-4">
                 <button 
                   className="btn btn-success"
-                  onClick={createRecipe}
+                  onClick={handleCreateRecipe}
                   disabled={loading || !newRecipe.name.trim() || newRecipe.ingredients.length === 0}
                 >
                   {loading ? 'Creating...' : 'Create Recipe'}

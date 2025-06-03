@@ -1,10 +1,1 @@
-module.exports = {
-  content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
-  plugins: [require('daisyui')],
-  daisyui: {
-    themes: ['cmyk'],
-  },
-};
+// This file can be deleted - Tailwind v4 uses CSS-based configuration

@@ -137,8 +137,10 @@ The frontend is built with React + TypeScript + Vite and includes:
 - **Dashboard** (`/dashboard`) - Overview page with monthly meal planning
 - **Meal Planner** (`/meal-plan`) - Interactive weekly meal planning interface
 - **Ingredients** (`/ingredients`) - Ingredient management and creation
-- **Recipes** (`/recipes`) - Recipe management (partially implemented)
-- Simple routing system without React Router
+- **Recipes** (`/recipes`) - Recipe management (fully implemented with creation)
+- React Router for navigation between pages
+
+Note: The backend includes JWT authentication endpoints, but most CRUD operations work without authentication for development purposes.
 
 ## Running the Application
 
