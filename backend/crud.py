@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
 import models
-from schemas import UserCreate, IngredientCreate, RecipeCreate
+from schemas import UserCreate, UserUpdate, IngredientCreate, RecipeCreate
 
 # User CRUD operations
 def create_user(db: Session, user: UserCreate):
@@ -21,6 +21,38 @@ def get_user(db: Session, user_id: int):
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
+
+def get_user_by_email(db: Session, email: str):
+    """Return a user matching the given email or None."""
+    return db.query(models.User).filter(models.User.email == email).first()
+
+def get_user_by_username(db: Session, username: str):
+    """Return a user matching the given username or None."""
+    return db.query(models.User).filter(models.User.username == username).first()
+
+def update_user(db: Session, user_id: int, user: UserUpdate):
+    """Update an existing user with the provided fields."""
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return None
+    if user.email is not None:
+        db_user.email = user.email
+    if user.username is not None:
+        db_user.username = user.username
+    if user.password is not None:
+        db_user.hashed_password = user.password + "notreallyhashed"
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def delete_user(db: Session, user_id: int):
+    """Delete a user and return it. Returns None if not found."""
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return None
+    db.delete(db_user)
+    db.commit()
+    return db_user
 
 # Ingredient CRUD operations
 def create_ingredient(db: Session, ingredient: IngredientCreate):
