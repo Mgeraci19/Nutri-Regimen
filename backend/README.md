@@ -11,6 +11,7 @@ The application uses SQLite as its database, with SQLAlchemy as the ORM (Object-
 The database consists of the following tables:
 
 - **users**: Stores user information (id, email, username, hashed_password)
+- Passwords are stored using bcrypt hashing and are never saved in plain text.
 - **ingredients**: Stores nutritional information about different ingredients (id, name, calories, protein, carbs, fat)
 - **recipes**: Stores recipe information with instructions (id, name, description, instructions, user_id)
 - **recipe_ingredients**: Association table linking recipes to ingredients with amounts (recipe_id, ingredient_id, amount, unit)
@@ -49,6 +50,11 @@ Once the application is running, you can access the interactive API documentatio
 - ReDoc: http://localhost:8000/redoc
 
 ## API Endpoints
+
+### Authentication
+
+- `POST /token`: Obtain a JWT access token
+- `GET /users/me`: Get the currently authenticated user
 
 ### Users
 

@@ -1,7 +1,11 @@
-from typing import List, Optional, Union
+from typing import List, Optional
+from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from pydantic import BaseModel
 
 
 import models, schemas, crud
@@ -11,6 +15,46 @@ from database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Nutri-Regimen API")
+
+# Authentication settings
+SECRET_KEY = "change_this_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+# Utility functions for authentication
+def create_access_token(data: dict, expires_delta: Optional[int] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=expires_delta or ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_user_by_username(db, username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
 
 # Add CORS middleware
 app.add_middleware(
@@ -26,6 +70,23 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Nutri-Regimen API"}
+
+# Authentication endpoints
+@app.post("/token", response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me", response_model=schemas.User)
+def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
 
 # User endpoints
 @app.post("/users/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
