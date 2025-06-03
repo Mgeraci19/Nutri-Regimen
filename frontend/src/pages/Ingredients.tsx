@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../apiClient';
+import { apiFetch, checkApiHealth } from '../apiClient';
 
 interface Ingredient {
   id: number;
@@ -31,6 +31,14 @@ const Ingredients = () => {
     carbs: 0,
     fat: 0
   });
+  const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
+
+  // Check API health
+  const checkHealth = async () => {
+    const healthy = await checkApiHealth();
+    setApiHealthy(healthy);
+    console.log(`🏥 API Health Check: ${healthy ? 'Healthy' : 'Unhealthy'}`);
+  };
 
   // Fetch all ingredients
   const fetchIngredients = async () => {
@@ -38,9 +46,12 @@ const Ingredients = () => {
     setError(null);
     
     try {
+      console.log('🔄 Starting to fetch ingredients...');
       const data = await apiFetch<Ingredient[]>('/ingredients/');
+      console.log('✅ Successfully fetched ingredients:', data);
       setIngredients(data);
     } catch (err) {
+      console.error('❌ Error in fetchIngredients:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
@@ -63,16 +74,13 @@ const Ingredients = () => {
   };
 
   // Create new ingredient
-  const createIngredient = async () => {
+  const handleCreateIngredient = async () => {
     setLoading(true);
     setError(null);
     
     try {
       const data = await apiFetch<Ingredient>('/ingredients/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(newIngredient),
       });
       console.log('Created ingredient:', data);
@@ -105,15 +113,37 @@ const Ingredients = () => {
 
   // Load ingredients when component mounts
   useEffect(() => {
+    checkHealth();
     fetchIngredients();
   }, []);
 
   return (
     <div className="w-full h-full bg-base-100 p-4">
       <div className="flex flex-col gap-4">
+        {/* API Health Indicator */}
+        <div className={`alert ${apiHealthy === true ? 'alert-success' : apiHealthy === false ? 'alert-error' : 'alert-warning'}`}>
+          <span>
+            API Status: {apiHealthy === true ? '✅ Connected' : apiHealthy === false ? '❌ Disconnected' : '⏳ Checking...'}
+            {apiHealthy === false && (
+              <>
+                <br />
+                <button className="btn btn-sm btn-outline mt-2" onClick={checkHealth}>
+                  Retry Connection
+                </button>
+              </>
+            )}
+          </span>
+        </div>
+
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-2xl font-bold">Ingredients Data</h1>
           <div className="flex gap-2">
+            <button 
+              className="btn btn-info btn-sm" 
+              onClick={checkHealth}
+            >
+              Check API
+            </button>
             <button 
               className="btn btn-secondary" 
               onClick={() => setShowCreateForm(!showCreateForm)}
@@ -208,7 +238,7 @@ const Ingredients = () => {
               <div className="card-actions justify-end mt-4">
                 <button 
                   className="btn btn-success"
-                  onClick={createIngredient}
+                  onClick={handleCreateIngredient}
                   disabled={loading || !newIngredient.name.trim()}
                 >
                   {loading ? 'Creating...' : 'Create Ingredient'}

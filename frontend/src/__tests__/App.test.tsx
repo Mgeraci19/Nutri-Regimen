@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { test, expect } from 'vitest';
 import App from '../App';
 
 test('renders navigation links', () => {
@@ -8,5 +9,5 @@ test('renders navigation links', () => {
       <App />
     </BrowserRouter>
   );
-  expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
+  expect(screen.getByText(/dashboard/i)).toBeDefined();
 });

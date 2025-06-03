@@ -24,6 +24,7 @@ const MealPlan = () => {
     clearMealPlan,
   } = useMealPlan();
 
+
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);

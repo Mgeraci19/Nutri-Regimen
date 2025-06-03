@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models
+import schemas
 from schemas import UserCreate, IngredientCreate, RecipeCreate, MealPlanCreate
 from passlib.context import CryptContext
 
@@ -44,6 +45,30 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[mod
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        return None
+    
+    # Update user fields if provided
+    if user.email is not None:
+        db_user.email = user.email
+    if user.username is not None:
+        db_user.username = user.username
+    if user.password is not None:
+        db_user.hashed_password = get_password_hash(user.password)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    return db_user
 
 # Ingredient CRUD operations
 def create_ingredient(db: Session, ingredient: IngredientCreate):
@@ -154,3 +179,4 @@ def update_meal_plan(db: Session, meal_plan_id: int, meal_plan: MealPlanCreate):
     db.commit()
     db.refresh(db_meal_plan)
     return db_meal_plan
+
