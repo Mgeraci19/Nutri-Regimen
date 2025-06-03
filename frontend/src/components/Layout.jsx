@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 
 const Layout = ({ children }) => {
     return (
@@ -13,22 +14,22 @@ const Layout = ({ children }) => {
                             tabIndex={0}
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                             <li>
-                                <a href="/dashboard">Dashboard</a>
+                                <Link to="/dashboard">Dashboard</Link>
                             </li>
                             <li>
-                                <a href="/weekly">Weekly Plan</a>
+                                <Link to="/weekly">Weekly Plan</Link>
                             </li>
                             <li>
-                                <a href="/meal-plan">Meal Planner</a>
+                                <Link to="/meal-plan">Meal Planner</Link>
                             </li>
                             <li>
-                                <a href="/ingredients">Ingredients Data</a>
+                                <Link to="/ingredients">Ingredients Data</Link>
                             </li>
                             <li>
-                                <a href="/recipes">Recipes Data</a>
+                                <Link to="/recipes">Recipes Data</Link>
                             </li>
                             <li>
-                                <a href="/crud">CRUD Test</a>
+                                <Link to="/crud">CRUD Test</Link>
                             </li>
                         </ul>
                     </div>
