@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../apiClient';
-import { Recipe, MealSlot, SavedMealPlan } from '../types';
+import type { Recipe, MealSlot, SavedMealPlan } from '../types';
 
 export const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const mealTypes = ['breakfast', 'lunch', 'dinner'] as const;
@@ -38,7 +38,7 @@ export function useMealPlan() {
 
   const fetchSavedMealPlans = async () => {
     try {
-      const data = await apiFetch<SavedMealPlan[]>('/users/1/meal-plans/');
+      const data = await apiFetch<SavedMealPlan[]>('/users/me/meal-plans/');
       setSavedMealPlans(data);
     } catch (err) {
       console.error('Error fetching saved meal plans:', err);
@@ -83,7 +83,7 @@ export function useMealPlan() {
           body: JSON.stringify(mealPlanData),
         });
       } else {
-        savedPlan = await apiFetch<SavedMealPlan>('/meal-plans/?user_id=1', {
+        savedPlan = await apiFetch<SavedMealPlan>('/meal-plans/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(mealPlanData),
@@ -146,10 +146,10 @@ export function useMealPlan() {
           (recipeTotal, ingredient) => {
             const factor = ingredient.amount / 100;
             return {
-              calories: recipeTotal.calories + ingredient.ingredient.calories * factor,
-              protein: recipeTotal.protein + ingredient.ingredient.protein * factor,
-              carbs: recipeTotal.carbs + ingredient.ingredient.carbs * factor,
-              fat: recipeTotal.fat + ingredient.ingredient.fat * factor,
+              calories: recipeTotal.calories + (ingredient.ingredient.calories_per_100g || 0) * factor,
+              protein: recipeTotal.protein + (ingredient.ingredient.protein_per_100g || 0) * factor,
+              carbs: recipeTotal.carbs + (ingredient.ingredient.carbs_per_100g || 0) * factor,
+              fat: recipeTotal.fat + (ingredient.ingredient.fat_per_100g || 0) * factor,
             };
           },
           { calories: 0, protein: 0, carbs: 0, fat: 0 }

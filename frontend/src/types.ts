@@ -1,6 +1,22 @@
 export interface Ingredient {
   id: number;
   name: string;
+  category?: string;
+  calories_per_100g?: number;
+  protein_per_100g?: number;
+  carbs_per_100g?: number;
+  fat_per_100g?: number;
+  fiber_per_100g?: number;
+  sugar_per_100g?: number;
+  sodium_per_100g?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Legacy interface for backward compatibility
+export interface LegacyIngredient {
+  id: number;
+  name: string;
   calories: number;
   protein: number;
   carbs: number;

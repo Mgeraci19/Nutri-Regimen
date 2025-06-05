@@ -5,18 +5,24 @@ from datetime import datetime
 # User schemas
 class UserBase(BaseModel):
     email: str
-    username: str
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
+    # No password field - handled by Supabase
+    pass
 
 class UserUpdate(BaseModel):
-    email: Optional[str] = None
     username: Optional[str] = None
-    password: Optional[str] = None
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class User(UserBase):
     id: int
+    supabase_user_id: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -24,23 +30,33 @@ class User(UserBase):
 # Ingredient schemas
 class IngredientBase(BaseModel):
     name: str
-    calories: float
-    protein: float
-    carbs: float
-    fat: float
+    category: Optional[str] = None
+    calories_per_100g: Optional[int] = None
+    protein_per_100g: Optional[float] = None
+    carbs_per_100g: Optional[float] = None
+    fat_per_100g: Optional[float] = None
+    fiber_per_100g: Optional[float] = None
+    sugar_per_100g: Optional[float] = None
+    sodium_per_100g: Optional[float] = None
 
 class IngredientCreate(IngredientBase):
     pass
 
 class IngredientUpdate(BaseModel):
     name: Optional[str] = None
-    calories: Optional[float] = None
-    protein: Optional[float] = None
-    carbs: Optional[float] = None
-    fat: Optional[float] = None
+    category: Optional[str] = None
+    calories_per_100g: Optional[int] = None
+    protein_per_100g: Optional[float] = None
+    carbs_per_100g: Optional[float] = None
+    fat_per_100g: Optional[float] = None
+    fiber_per_100g: Optional[float] = None
+    sugar_per_100g: Optional[float] = None
+    sodium_per_100g: Optional[float] = None
 
 class Ingredient(IngredientBase):
     id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
@@ -48,7 +64,7 @@ class Ingredient(IngredientBase):
 # Recipe ingredient association schemas
 class RecipeIngredientBase(BaseModel):
     ingredient_id: int
-    amount: float
+    quantity: float  # Changed from 'amount' to 'quantity' to match database
     unit: str
 
 class RecipeIngredientCreate(RecipeIngredientBase):

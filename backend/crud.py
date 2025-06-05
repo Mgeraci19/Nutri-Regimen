@@ -1,25 +1,19 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime
 import models
 import schemas
 from schemas import UserCreate, IngredientCreate, RecipeCreate, MealPlanCreate
-from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-# User CRUD operations
-def create_user(db: Session, user: UserCreate):
-    hashed_password = get_password_hash(user.password)
+# User CRUD operations (Supabase authentication)
+def create_user(db: Session, user: UserCreate, supabase_user_id: str):
+    """Create a new user linked to Supabase auth"""
     db_user = models.User(
+        supabase_user_id=supabase_user_id,
         email=user.email,
         username=user.username,
-        hashed_password=hashed_password
+        full_name=user.full_name,
+        avatar_url=user.avatar_url
     )
     db.add(db_user)
     db.commit()
@@ -38,13 +32,9 @@ def get_user_by_email(db: Session, email: str):
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
-def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]:
-    user = get_user_by_username(db, username=username)
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
+def get_user_by_supabase_id(db: Session, supabase_user_id: str):
+    """Get user by Supabase user ID"""
+    return db.query(models.User).filter(models.User.supabase_user_id == supabase_user_id).first()
 
 def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -52,12 +42,12 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
         return None
     
     # Update user fields if provided
-    if user.email is not None:
-        db_user.email = user.email
     if user.username is not None:
         db_user.username = user.username
-    if user.password is not None:
-        db_user.hashed_password = get_password_hash(user.password)
+    if user.full_name is not None:
+        db_user.full_name = user.full_name
+    if user.avatar_url is not None:
+        db_user.avatar_url = user.avatar_url
     
     db.commit()
     db.refresh(db_user)
@@ -211,7 +201,7 @@ def update_weekly_assignment(db: Session, assignment_id: int, assignment: schema
         return None
     
     db_assignment.meal_plan_id = assignment.meal_plan_id
-    db_assignment.updated_at = models.datetime.utcnow()
+    db_assignment.updated_at = datetime.utcnow()
     
     db.commit()
     db.refresh(db_assignment)
@@ -225,4 +215,3 @@ def delete_weekly_assignment(db: Session, assignment_id: int):
         db.delete(db_assignment)
         db.commit()
     return db_assignment
-

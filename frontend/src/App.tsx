@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import MealPlan from './pages/MealPlan';
@@ -9,16 +10,18 @@ import Recipes from './pages/Recipes';
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/meal-plan" element={<MealPlan />} />
-        <Route path="/weekly" element={<WeeklyPlanner />} />
-        <Route path="/ingredients" element={<Ingredients />} />
-        <Route path="/recipes" element={<Recipes />} />
-      </Routes>
-    </Layout>
+    <AuthProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/meal-plan" element={<MealPlan />} />
+          <Route path="/weekly" element={<WeeklyPlanner />} />
+          <Route path="/ingredients" element={<Ingredients />} />
+          <Route path="/recipes" element={<Recipes />} />
+        </Routes>
+      </Layout>
+    </AuthProvider>
   );
 }
 

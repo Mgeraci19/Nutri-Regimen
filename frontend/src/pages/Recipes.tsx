@@ -1,30 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../apiClient';
-
-interface Ingredient {
-  id: number;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
-
-interface RecipeIngredient {
-  ingredient_id: number;
-  amount: number;
-  unit: string;
-  ingredient: Ingredient;
-}
-
-interface Recipe {
-  id: number;
-  name: string;
-  description: string;
-  instructions: string;
-  user_id: number;
-  ingredient_associations: RecipeIngredient[];
-}
+import type { Ingredient, Recipe } from '../types';
 
 interface NewRecipeIngredient {
   ingredient_id: number;
@@ -99,7 +75,7 @@ const Recipes = () => {
     setError(null);
     
     try {
-      const data = await apiFetch<Recipe>('/recipes/?user_id=1', {
+      const data = await apiFetch<Recipe>('/recipes/', {
         method: 'POST',
         body: JSON.stringify(newRecipe),
       });

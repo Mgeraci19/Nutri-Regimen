@@ -1,3 +1,5 @@
+import { supabase } from './lib/supabase';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
@@ -6,6 +8,10 @@ export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T
   try {
     console.log(`🚀 Making API request to: ${fullUrl}`);
     console.log(`📝 Request options:`, options);
+    
+    // Get Supabase session token
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
     
     // Add timeout and better error handling
     const controller = new AbortController();
@@ -16,6 +22,7 @@ export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
         ...options?.headers,
       },
       // Ensure credentials are included for CORS

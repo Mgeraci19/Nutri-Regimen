@@ -30,7 +30,7 @@ const WeeklyPlanner = () => {
     const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     startOfFirstWeek.setDate(firstDay.getDate() - daysToMonday);
 
-    let weekStart = new Date(startOfFirstWeek);
+    const weekStart = new Date(startOfFirstWeek);
     let weekNumber = 1;
 
     while (weekStart.getTime() <= lastDay.getTime()) {
@@ -75,7 +75,7 @@ const WeeklyPlanner = () => {
   // Fetch saved meal plans
   const fetchSavedMealPlans = async () => {
     try {
-      const data = await apiFetch<SavedMealPlan[]>('/users/1/meal-plans/');
+      const data = await apiFetch<SavedMealPlan[]>('/users/me/meal-plans/');
       setSavedMealPlans(data);
     } catch (err) {
       console.error('Error fetching saved meal plans:', err);
@@ -85,7 +85,7 @@ const WeeklyPlanner = () => {
   // Fetch weekly assignments from backend
   const fetchWeeklyAssignments = async () => {
     try {
-      const data = await apiFetch<WeeklyAssignment[]>('/users/1/weekly-assignments/');
+      const data = await apiFetch<WeeklyAssignment[]>('/users/me/weekly-assignments/');
       setWeeklyAssignments(data);
     } catch (err) {
       console.error('Error fetching weekly assignments:', err);
@@ -103,7 +103,7 @@ const WeeklyPlanner = () => {
       const assignmentData = {
         week_start_date: weekStartDate,
         meal_plan_id: mealPlanId,
-        user_id: 1
+        user_id: 0 // This will be overridden by the backend with the current user's ID
       };
 
       await apiFetch('/weekly-assignments/', {
@@ -158,10 +158,10 @@ const WeeklyPlanner = () => {
           // Calculate nutrition for each recipe (simplified - assumes 1 serving per meal)
           item.recipe.ingredient_associations.forEach(ingredient => {
             const factor = ingredient.amount / 100;
-            totalCalories += ingredient.ingredient.calories * factor;
-            totalProtein += ingredient.ingredient.protein * factor;
-            totalCarbs += ingredient.ingredient.carbs * factor;
-            totalFat += ingredient.ingredient.fat * factor;
+            totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
+            totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
+            totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
+            totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
           });
         });
       }

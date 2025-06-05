@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -7,9 +7,13 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
+    supabase_user_id = Column(String, unique=True, index=True, nullable=False)  # Links to Supabase auth.users
     email = Column(String, unique=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    username = Column(String, unique=True, index=True, nullable=True)  # Optional, can be set later
+    full_name = Column(String, nullable=True)  # From Supabase user metadata
+    avatar_url = Column(String, nullable=True)  # From Supabase user metadata
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     recipes = relationship("Recipe", back_populates="creator")
@@ -20,10 +24,16 @@ class Ingredient(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    calories = Column(Float)
-    protein = Column(Float)
-    carbs = Column(Float)
-    fat = Column(Float)
+    category = Column(String)
+    calories_per_100g = Column(Integer)
+    protein_per_100g = Column(Float)
+    carbs_per_100g = Column(Float)
+    fat_per_100g = Column(Float)
+    fiber_per_100g = Column(Float)
+    sugar_per_100g = Column(Float)
+    sodium_per_100g = Column(Float)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationship
     recipe_associations = relationship("RecipeIngredient", back_populates="ingredient")
@@ -47,7 +57,7 @@ class RecipeIngredient(Base):
     
     recipe_id = Column(Integer, ForeignKey("recipes.id"), primary_key=True)
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), primary_key=True)
-    amount = Column(Float)
+    quantity = Column(Float)  # Using existing 'quantity' column instead of 'amount'
     unit = Column(String)
     
     # Relationships
@@ -60,8 +70,8 @@ class MealPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     user = relationship("User", back_populates="meal_plans")
@@ -87,8 +97,8 @@ class WeeklyAssignment(Base):
     week_start_date = Column(String, index=True)  # ISO date string (Monday of that week)
     meal_plan_id = Column(Integer, ForeignKey("meal_plans.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     user = relationship("User")
