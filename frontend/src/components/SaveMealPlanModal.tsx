@@ -1,5 +1,5 @@
 import React from 'react';
-import { SavedMealPlan } from '../types';
+import type { SavedMealPlan } from '../types';
 
 interface Props {
   visible: boolean;

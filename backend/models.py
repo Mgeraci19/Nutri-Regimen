@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime, func
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime, Date, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import uuid
 from database import Base
 
 class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    supabase_user_id = Column(String, unique=True, index=True, nullable=False)  # Links to Supabase auth.users
+    supabase_user_id = Column(UUID(as_uuid=True), unique=True, index=True, nullable=False)  # Links to Supabase auth.users
     email = Column(String, unique=True, index=True)
     username = Column(String, unique=True, index=True, nullable=True)  # Optional, can be set later
     full_name = Column(String, nullable=True)  # From Supabase user metadata
@@ -45,7 +47,10 @@ class Recipe(Base):
     name = Column(String, index=True)
     description = Column(Text)
     instructions = Column(Text)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for public recipes
+    is_public = Column(String, default="false")  # Public recipes available to all users
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     creator = relationship("User", back_populates="recipes")
@@ -69,7 +74,8 @@ class MealPlan(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for template meal plans
+    is_template = Column(String, default="false")  # Template meal plans available to all users
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -94,7 +100,7 @@ class WeeklyAssignment(Base):
     __tablename__ = "weekly_assignments"
     
     id = Column(Integer, primary_key=True, index=True)
-    week_start_date = Column(String, index=True)  # ISO date string (Monday of that week)
+    week_start_date = Column(Date, index=True)  # Use Date instead of String
     meal_plan_id = Column(Integer, ForeignKey("meal_plans.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=func.now())

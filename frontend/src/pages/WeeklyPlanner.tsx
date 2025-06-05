@@ -151,18 +151,22 @@ const WeeklyPlanner = () => {
     const allRecipeIds = new Set<number>();
 
     assignedWeeks.forEach(week => {
-      if (week.assignment) {
+      if (week.assignment && week.assignment.meal_plan && week.assignment.meal_plan.meal_plan_items) {
         week.assignment.meal_plan.meal_plan_items.forEach(item => {
           allRecipeIds.add(item.recipe_id);
           
           // Calculate nutrition for each recipe (simplified - assumes 1 serving per meal)
-          item.recipe.ingredient_associations.forEach(ingredient => {
-            const factor = ingredient.amount / 100;
-            totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
-            totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
-            totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
-            totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
-          });
+          if (item.recipe && item.recipe.ingredient_associations) {
+            item.recipe.ingredient_associations.forEach(ingredient => {
+              if (ingredient.ingredient) {
+                const factor = ingredient.amount / 100;
+                totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
+                totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
+                totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
+                totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
+              }
+            });
+          }
         });
       }
     });
@@ -274,11 +278,11 @@ const WeeklyPlanner = () => {
                       <div className="badge badge-primary">{week.weekNumber}</div>
                     </div>
                     
-                    {week.assignment ? (
+                    {week.assignment && week.assignment.meal_plan ? (
                       <div className="mt-2">
                         <div className="font-medium text-success">{week.assignment.meal_plan.name}</div>
                         <div className="text-xs opacity-70">
-                          {week.assignment.meal_plan.meal_plan_items.length} meals planned
+                          {week.assignment.meal_plan.meal_plan_items?.length || 0} meals planned
                         </div>
                       </div>
                     ) : (

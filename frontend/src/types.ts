@@ -13,16 +13,6 @@ export interface Ingredient {
   updated_at?: string;
 }
 
-// Legacy interface for backward compatibility
-export interface LegacyIngredient {
-  id: number;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
-
 export interface RecipeIngredient {
   ingredient_id: number;
   amount: number;

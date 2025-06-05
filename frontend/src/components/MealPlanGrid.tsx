@@ -1,5 +1,5 @@
 import React from 'react';
-import { Recipe, MealSlot, SavedMealPlan } from '../types';
+import type { Recipe, MealSlot, SavedMealPlan } from '../types';
 
 interface Props {
   recipes: Recipe[];

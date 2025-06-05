@@ -96,18 +96,22 @@ const Dashboard = () => {
     const allRecipeIds = new Set<number>();
 
     assignedWeeks.forEach(week => {
-      if (week.assignment) {
+      if (week.assignment && week.assignment.meal_plan && week.assignment.meal_plan.meal_plan_items) {
         week.assignment.meal_plan.meal_plan_items.forEach(item => {
           allRecipeIds.add(item.recipe_id);
           
           // Calculate nutrition for each recipe
-          item.recipe.ingredient_associations.forEach(ingredient => {
-            const factor = ingredient.amount / 100;
-            totalCalories += ingredient.ingredient.calories * factor;
-            totalProtein += ingredient.ingredient.protein * factor;
-            totalCarbs += ingredient.ingredient.carbs * factor;
-            totalFat += ingredient.ingredient.fat * factor;
-          });
+          if (item.recipe && item.recipe.ingredient_associations) {
+            item.recipe.ingredient_associations.forEach(ingredient => {
+              if (ingredient.ingredient) {
+                const factor = ingredient.amount / 100;
+                totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
+                totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
+                totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
+                totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
+              }
+            });
+          }
         });
       }
     });
@@ -241,19 +245,19 @@ const Dashboard = () => {
           {/* Current Week */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">This Week</h2>
-            {stats.currentWeekAssignment ? (
+            {stats.currentWeekAssignment && stats.currentWeekAssignment.meal_plan ? (
               <div>
                 <div className="font-medium text-green-700 mb-2 text-lg">
                   {stats.currentWeekAssignment.meal_plan.name}
                 </div>
                 <div className="text-gray-600 mb-4">
-                  {stats.currentWeekAssignment.meal_plan.meal_plan_items.length} meals planned
+                  {stats.currentWeekAssignment.meal_plan.meal_plan_items?.length || 0} meals planned
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
-                    const dayMeals = stats.currentWeekAssignment!.meal_plan.meal_plan_items.filter(
+                    const dayMeals = stats.currentWeekAssignment!.meal_plan.meal_plan_items?.filter(
                       item => item.day_of_week === day
-                    );
+                    ) || [];
                     return (
                       <div key={day} className="bg-gray-50 border border-gray-200 p-2 rounded text-center">
                         <div className="font-medium text-gray-900 text-sm">{day.slice(0, 3)}</div>
@@ -362,13 +366,13 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="col-span-2">
-                    {week.assignment ? (
+                    {week.assignment && week.assignment.meal_plan ? (
                       <div>
                         <div className="font-medium text-gray-900">
                           {week.assignment.meal_plan.name}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {week.assignment.meal_plan.meal_plan_items.length} meals planned
+                          {week.assignment.meal_plan.meal_plan_items?.length || 0} meals planned
                         </div>
                       </div>
                     ) : (
