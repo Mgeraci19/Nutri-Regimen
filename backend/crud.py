@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime
 import models
@@ -91,7 +91,7 @@ def create_recipe(db: Session, recipe: RecipeCreate, user_id: int):
         db_recipe_ingredient = models.RecipeIngredient(
             recipe_id=db_recipe.id,
             ingredient_id=recipe_ingredient.ingredient_id,
-            amount=recipe_ingredient.amount,
+            quantity=recipe_ingredient.quantity,
             unit=recipe_ingredient.unit
         )
         db.add(db_recipe_ingredient)
@@ -191,6 +191,8 @@ def get_weekly_assignment_by_week(db: Session, week_start_date: str, user_id: in
 def get_user_weekly_assignments(db: Session, user_id: int):
     return db.query(models.WeeklyAssignment).filter(
         models.WeeklyAssignment.user_id == user_id
+    ).options(
+        joinedload(models.WeeklyAssignment.meal_plan).joinedload(models.MealPlan.meal_plan_items).joinedload(models.MealPlanItem.recipe).joinedload(models.Recipe.ingredient_associations).joinedload(models.RecipeIngredient.ingredient)
     ).all()
 
 def update_weekly_assignment(db: Session, assignment_id: int, assignment: schemas.WeeklyAssignmentCreate):

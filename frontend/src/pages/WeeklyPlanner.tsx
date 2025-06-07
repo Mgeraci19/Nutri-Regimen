@@ -155,18 +155,18 @@ const WeeklyPlanner = () => {
         week.assignment.meal_plan.meal_plan_items.forEach(item => {
           allRecipeIds.add(item.recipe_id);
           
-          // Calculate nutrition for each recipe (simplified - assumes 1 serving per meal)
-          if (item.recipe && item.recipe.ingredient_associations) {
-            item.recipe.ingredient_associations.forEach(ingredient => {
-              if (ingredient.ingredient) {
-                const factor = ingredient.amount / 100;
-                totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
-                totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
-                totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
-                totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
-              }
-            });
-          }
+            // Calculate nutrition for each recipe (simplified - assumes 1 serving per meal)
+            if (item.recipe && item.recipe.ingredient_associations) {
+              item.recipe.ingredient_associations.forEach(ingredient => {
+                if (ingredient.ingredient) {
+                  const factor = ingredient.quantity / 100;
+                  totalCalories += (ingredient.ingredient.calories_per_100g || 0) * factor;
+                  totalProtein += (ingredient.ingredient.protein_per_100g || 0) * factor;
+                  totalCarbs += (ingredient.ingredient.carbs_per_100g || 0) * factor;
+                  totalFat += (ingredient.ingredient.fat_per_100g || 0) * factor;
+                }
+              });
+            }
         });
       }
     });
@@ -280,10 +280,25 @@ const WeeklyPlanner = () => {
                     
                     {week.assignment && week.assignment.meal_plan ? (
                       <div className="mt-2">
-                        <div className="font-medium text-success">{week.assignment.meal_plan.name}</div>
-                        <div className="text-xs opacity-70">
+                        <div className="font-medium text-success mb-1">{week.assignment.meal_plan.name}</div>
+                        <div className="text-xs opacity-70 mb-2">
                           {week.assignment.meal_plan.meal_plan_items?.length || 0} meals planned
                         </div>
+                        {week.assignment.meal_plan.meal_plan_items && week.assignment.meal_plan.meal_plan_items.length > 0 && (
+                          <div className="space-y-1">
+                            {week.assignment.meal_plan.meal_plan_items.slice(0, 2).map((item, index) => (
+                              <div key={index} className="text-xs text-base-content/70">
+                                <span className="badge badge-xs badge-outline mr-1">{item.meal_type}</span>
+                                {item.recipe?.name || 'Unknown Recipe'}
+                              </div>
+                            ))}
+                            {week.assignment.meal_plan.meal_plan_items.length > 2 && (
+                              <div className="text-xs text-base-content/50">
+                                +{week.assignment.meal_plan.meal_plan_items.length - 2} more
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="mt-2 text-center text-base-content/50">
@@ -325,15 +340,30 @@ const WeeklyPlanner = () => {
                     
                     {savedMealPlans.map(plan => (
                       <div key={plan.id} className="card bg-base-200 p-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium">{plan.name}</div>
-                            <div className="text-sm opacity-70">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium mb-1">{plan.name}</div>
+                            <div className="text-sm opacity-70 mb-2">
                               {plan.meal_plan_items.length} meals • Created {new Date(plan.created_at).toLocaleDateString()}
                             </div>
+                            {plan.meal_plan_items && plan.meal_plan_items.length > 0 && (
+                              <div className="space-y-1">
+                                {plan.meal_plan_items.slice(0, 3).map((item, index) => (
+                                  <div key={index} className="text-xs text-base-content/60">
+                                    <span className="badge badge-xs badge-outline mr-1">{item.meal_type}</span>
+                                    {item.recipe?.name || 'Unknown Recipe'}
+                                  </div>
+                                ))}
+                                {plan.meal_plan_items.length > 3 && (
+                                  <div className="text-xs text-base-content/50">
+                                    +{plan.meal_plan_items.length - 3} more meals
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-primary ml-3"
                             onClick={() => assignMealPlanToWeek(formatDateToISO(selectedWeek.startDate), plan.id)}
                             disabled={loading}
                           >

@@ -155,6 +155,7 @@ class WeeklyAssignment(WeeklyAssignmentBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
+    meal_plan: MealPlan
 
     class Config:
         from_attributes = True
