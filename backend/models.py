@@ -20,6 +20,7 @@ class User(Base):
     # Relationships
     recipes = relationship("Recipe", back_populates="creator")
     meal_plans = relationship("MealPlan", back_populates="user")
+    weekly_assignments = relationship("WeeklyAssignment", back_populates="user")
 
 class Ingredient(Base):
     __tablename__ = "ingredients"
