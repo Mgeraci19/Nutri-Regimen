@@ -14,6 +14,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/auth/callback" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/meal-plan" element={<MealPlan />} />
           <Route path="/weekly" element={<WeeklyPlanner />} />
