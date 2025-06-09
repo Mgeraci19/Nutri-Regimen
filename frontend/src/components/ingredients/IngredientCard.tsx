@@ -4,21 +4,41 @@ import type { Ingredient } from '../../types';
 interface IngredientCardProps {
   ingredient: Ingredient;
   onView?: (id: number) => void;
+  onDelete?: (id: number) => void;
   isSelected?: boolean;
 }
 
 export const IngredientCard: React.FC<IngredientCardProps> = ({
   ingredient,
   onView,
+  onDelete,
   isSelected = false
 }) => {
-  const cardClass = `card bg-base-200 shadow-md hover:shadow-lg transition-shadow cursor-pointer ${
+  const cardClass = `card bg-base-200 shadow-md hover:shadow-lg transition-shadow ${
     isSelected ? 'ring-2 ring-primary' : ''
   }`;
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
     if (onView) {
       onView(ingredient.id);
+    }
+  };
+
+  const handleView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onView) {
+      onView(ingredient.id);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(ingredient.id);
     }
   };
 
@@ -87,6 +107,28 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
             )}
           </div>
         )}
+
+        {/* Action buttons */}
+        <div className="card-actions justify-end mt-4">
+          {onView && (
+            <button 
+              className="btn btn-sm btn-primary"
+              onClick={handleView}
+              aria-label={`View ${ingredient.name}`}
+            >
+              View
+            </button>
+          )}
+          {onDelete && (
+            <button 
+              className="btn btn-sm btn-error"
+              onClick={handleDelete}
+              aria-label={`Delete ${ingredient.name}`}
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

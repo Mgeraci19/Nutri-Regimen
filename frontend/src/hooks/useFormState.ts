@@ -13,10 +13,16 @@ export function useFormState<T extends Record<string, unknown>>(
   const [formData, setFormData] = useState<T>(initialData);
 
   const updateField = useCallback(<K extends keyof T>(field: K, value: T[K]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      // Performance optimization: only create new object if value actually changed
+      if (prev[field] === value) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
   }, []);
 
   const resetForm = useCallback((newInitialData?: T) => {

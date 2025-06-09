@@ -70,14 +70,15 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
       <div className="card-body">
         <h2 className="card-title">{submitLabel}</h2>
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} role="form">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Info */}
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-name">
                 <span className="label-text">Name *</span>
               </label>
               <input 
+                id="ingredient-name"
                 type="text" 
                 placeholder="Ingredient name" 
                 className="input input-bordered"
@@ -88,10 +89,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
             
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-category">
                 <span className="label-text">Category</span>
               </label>
               <input 
+                id="ingredient-category"
                 type="text" 
                 placeholder="e.g., Protein, Vegetable, Grain" 
                 className="input input-bordered"
@@ -102,10 +104,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             
             {/* Macronutrients */}
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-calories">
                 <span className="label-text">Calories (per 100g)</span>
               </label>
               <input 
+                id="ingredient-calories"
                 type="number" 
                 placeholder="0" 
                 className="input input-bordered"
@@ -117,10 +120,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
             
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-protein">
                 <span className="label-text">Protein (g per 100g)</span>
               </label>
               <input 
+                id="ingredient-protein"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
@@ -132,10 +136,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
             
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-carbs">
                 <span className="label-text">Carbs (g per 100g)</span>
               </label>
               <input 
+                id="ingredient-carbs"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
@@ -147,10 +152,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
             
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-fat">
                 <span className="label-text">Fat (g per 100g)</span>
               </label>
               <input 
+                id="ingredient-fat"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
@@ -163,10 +169,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
 
             {/* Additional nutrients */}
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-fiber">
                 <span className="label-text">Fiber (g per 100g)</span>
               </label>
               <input 
+                id="ingredient-fiber"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
@@ -178,10 +185,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-sugar">
                 <span className="label-text">Sugar (g per 100g)</span>
               </label>
               <input 
+                id="ingredient-sugar"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
@@ -193,10 +201,11 @@ export const IngredientForm: React.FC<IngredientFormProps> = ({
             </div>
 
             <div className="form-control md:col-span-2">
-              <label className="label">
+              <label className="label" htmlFor="ingredient-sodium">
                 <span className="label-text">Sodium (mg per 100g)</span>
               </label>
               <input 
+                id="ingredient-sodium"
                 type="number" 
                 step="0.1"
                 placeholder="0" 
