@@ -1,4 +1,77 @@
-# React + TypeScript + Vite
+# Nutri-Regimen Frontend
+
+This is the frontend for the Nutri-Regimen application, a nutrition tracking and meal planning system built with React, TypeScript, and Vite.
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build for production
+npm run build
+```
+
+## 📋 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests in watch mode
+- `npm run test:ci` - Run tests once (for CI)
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run test:ui` - Run tests with UI interface
+- `npm run type-check` - Run TypeScript type checking
+
+## 🧪 Testing
+
+This project uses Vitest for testing with React Testing Library. Tests are located in the `src/__tests__/` directory.
+
+### Running Tests
+
+```bash
+# Watch mode
+npm test
+
+# Single run (CI)
+npm run test:ci
+
+# With coverage
+npm run test:coverage
+
+# With UI
+npm run test:ui
+```
+
+## 🔧 GitHub Actions
+
+This project includes automated testing via GitHub Actions. The workflow runs on:
+
+- **Push to main/develop branches** with frontend changes
+- **Pull requests** targeting main/develop branches
+
+### What the workflow does:
+
+1. **Linting** - Checks code style with ESLint
+2. **Type Checking** - Validates TypeScript types
+3. **Testing** - Runs all tests on Node.js 18.x and 20.x
+4. **Coverage** - Generates test coverage reports
+5. **Building** - Ensures the app builds successfully
+6. **Artifacts** - Uploads build files and coverage reports
+
+The workflow only runs when files in the `frontend/` directory change, optimizing CI/CD performance.
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
