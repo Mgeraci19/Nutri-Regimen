@@ -208,7 +208,7 @@ describe('IngredientForm Component', () => {
       const nameInput = screen.getByLabelText(/name/i);
       await user.type(nameInput, 'Test Ingredient');
 
-      const submitButton = screen.getByRole('button' , {name:'Create Ingredient'});
+      const submitButton = screen.getByRole('button', { name: 'Create Ingredient' });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -230,7 +230,7 @@ describe('IngredientForm Component', () => {
       const nameInput = screen.getByLabelText(/name/i);
       await user.type(nameInput, 'Test Ingredient');
 
-      const submitButton = screen.getByRole('button' , {name:'Create Ingredient'});
+      const submitButton = screen.getByRole('button', { name: /create ingredient/i });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -362,12 +362,7 @@ describe('IngredientForm Component', () => {
 
       const submittedData = mockOnSubmit.mock.calls[0][0];
       
-      // Basic nutritional validation: 4 cal/g protein, 4 cal/g carbs, 9 cal/g fat
-      const expectedCalories = (25 * 4) + (50 * 4) + (15 * 9);
       expect(submittedData.calories_per_100g).toBe(400);
-      
-      // In a real app, you might want to validate that calories match macros
-      // This test documents the expected behavior
     });
   });
 
